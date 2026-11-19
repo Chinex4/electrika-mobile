@@ -1,26 +1,26 @@
 {
   "expo": {
-    "name": "electrika-mobile",
-    "slug": "electrika-mobile",
+    "name": "ElectriKa",
+    "slug": "electrika",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "electrikamobile",
-    "userInterfaceStyle": "automatic",
+    "scheme": "electrika",
+    "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "bundleIdentifier": "ng.electrika.app",
+      "supportsTablet": false
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#FFFFFF"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "ng.electrika.app"
     },
     "web": {
-      "output": "server",
+      "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -28,15 +28,43 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#FFFFFF",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 120
         }
-      ]
+      ],
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "ElectriKa uses your location to fill in your address when you ask for help, and to share an engineer's position with the customer while they are on the way.",
+          "locationAlwaysAndWhenInUsePermission": "While you are on the way to a job, ElectriKa shares your location with the customer, even with your screen off, until you tap \"I've arrived\".",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0051A2"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ElectriKa uses your photos for your profile picture and to show us the problem.",
+          "cameraPermission": "ElectriKa uses the camera for job photos and to show us the problem."
+        }
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "apiUrl": "https://electrika.ng/api"
     }
   }
 }
