@@ -1,4 +1,6 @@
 import { Image } from 'expo-image';
+
+import { remoteImage } from '@/api/client';
 import { useEffect, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
@@ -136,7 +138,7 @@ export function ErrorText({ children }: { children?: string | null }) {
 
 export function Avatar({ url, initials, size = 44, tone = 'brand' }: { url?: string | null; initials?: string; size?: number; tone?: 'brand' | 'white' }) {
   const box = { width: size, height: size, borderRadius: size / 2 };
-  if (url) return <Image source={url} style={box} contentFit="cover" transition={150} />;
+  if (url) return <Image source={remoteImage(url)} style={box} contentFit="cover" transition={150} />;
   return (
     <View style={box} className={cx('items-center justify-center', tone === 'white' ? 'bg-white/25' : 'bg-haze')}>
       <Text style={{ fontSize: size * 0.38 }} className={cx('font-bold', tone === 'white' ? 'text-white' : 'text-brand')}>

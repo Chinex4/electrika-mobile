@@ -2,8 +2,9 @@ import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { Button, Card, Choices, ErrorText, Field, Loading, Screen, Small, Title } from '@/components/ui';
+import { Button, Card, Choices, Field, Loading, Screen, Small, Title } from '@/components/ui';
 import { useT } from '@/i18n';
+import { rules, useValidate } from '@/lib/validate';
 import { notify } from '@/lib/toast';
 import { fieldErrors, useAction, useResource } from '@/store/hooks';
 import type { ApiFailure, Choice, Site } from '@/types/api';
@@ -13,6 +14,7 @@ type Check = { items: { key: string; label: string; guide: string }[]; answers: 
 /** The monthly self-check: a few looks around, each "All fine", "Something's not right" or "Doesn't apply". */
 export default function SelfCheck() {
   const t = useT();
+  const check = useValidate();
   const q = useResource<Check>('/care/check/');
   const d = q.data;
   const { run, busy } = useAction();
@@ -21,11 +23,12 @@ export default function SelfCheck() {
   const [meter, setMeter] = useState('');
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
 
   async function send() {
     setErrors({});
-    setError('');
+    const found = check({ meter_reading: meter }, { meter_reading: [rules.amount] });
+    setErrors(found);
+    if (Object.keys(found).length) return notify.error(t('v.fixFields'));
     const body: Record<string, string> = { meter_reading: meter, notes };
     if (site || d?.sites[0]) body.site = site || String(d!.sites[0].id);
     for (const [k, v] of Object.entries(answers)) body[`item_${k}`] = v;
@@ -40,7 +43,7 @@ export default function SelfCheck() {
       }
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error(Object.keys(fieldErrors(e)).length ? t('v.fixFields') : (e as ApiFailure).message);
     }
   }
 
@@ -63,7 +66,6 @@ export default function SelfCheck() {
       ))}
       <Field label={t('care.meterLabel')} placeholder={t('ph.care.meterLabel')} value={meter} onChangeText={setMeter} keyboardType="decimal-pad" error={errors.meter_reading} />
       <Field label={t('form.anythingElse')} placeholder={t('ph.form.anythingElse')} value={notes} onChangeText={setNotes} multiline />
-      <ErrorText>{Object.keys(errors).length ? t('form.checkFields') : error}</ErrorText>
     </Screen>
   );
 }

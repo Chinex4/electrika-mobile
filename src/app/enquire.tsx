@@ -3,8 +3,10 @@ import { useState } from 'react';
 
 import { photoPart } from '@/api/client';
 import { SelectField } from '@/components/SelectField';
-import { Banner, Button, ErrorText, Field, OptionCards, PhotoStrip, Screen, Title } from '@/components/ui';
+import { Banner, Button, Field, OptionCards, PhotoStrip, Screen, Title } from '@/components/ui';
 import { useT } from '@/i18n';
+import { clearError, rules, useValidate } from '@/lib/validate';
+import { notify } from '@/lib/toast';
 import { useConfig } from '@/lib/config';
 import { fieldErrors, useAction, useAppSelector, useResource } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
@@ -15,6 +17,7 @@ type FormChoices = { design: Choice[]; partner_kinds: Choice[] };
 /** Design and build, or partnering with us (estates, developers, facility managers). */
 export default function Enquire() {
   const t = useT();
+  const check = useValidate();
   const { kind } = useLocalSearchParams<{ kind: 'design' | 'partner' }>();
   const partner = kind === 'partner';
   const user = useAppSelector(selectUser);
@@ -24,12 +27,16 @@ export default function Enquire() {
   const [form, setForm] = useState({ project: '', about: '', address: '', area: '', kind: '', organisation: '', sites: '', notes: '', name: user?.name ?? '', phone: user?.phone_number ?? '', email: user?.email ?? '' });
   const [photos, setPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
 
   async function send() {
     setErrors({});
-    setError('');
+    const found = check(form, partner ? { kind: [rules.required], organisation: [rules.required], name: [rules.required], phone: [rules.required, rules.phone], email: [rules.email] } : { project: [rules.required], about: [rules.required, rules.minLength(10)], name: [rules.required], phone: [rules.required, rules.phone], email: [rules.email] });
+    setErrors(found);
+    if (Object.keys(found).length) return notify.error(t('v.fixFields'));
     let body: FormData | Record<string, string>;
     if (partner) body = { kind: form.kind, organisation: form.organisation, sites: form.sites, notes: form.notes, name: form.name, phone: form.phone, email: form.email };
     else {
@@ -42,7 +49,7 @@ export default function Enquire() {
       router.back();
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error(Object.keys(fieldErrors(e)).length ? t('v.fixFields') : (e as ApiFailure).message);
     }
   }
 
@@ -70,7 +77,6 @@ export default function Enquire() {
       <Field label={t('auth.phone')} placeholder={t('ph.auth.phone')} value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" error={errors.phone} />
       <Field label={t('auth.email')} placeholder={t('ph.auth.email')} value={form.email} onChangeText={set('email')} keyboardType="email-address" autoCapitalize="none" error={errors.email} />
       <Banner tone="info">{partner ? t('enquire.partnerWhen') : t('enquire.designWhen')}</Banner>
-      <ErrorText>{Object.keys(errors).length ? '' : error}</ErrorText>
     </Screen>
   );
 }

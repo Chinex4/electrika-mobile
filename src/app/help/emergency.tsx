@@ -4,8 +4,10 @@ import { Pressable, Text, View } from 'react-native';
 
 import { SelectField } from '@/components/SelectField';
 import { StaySafe } from '@/components/StaySafe';
-import { Banner, brandColors, Button, Card, Choices, cx, ErrorText, Field, Heading, Icon, icons, Screen, Small } from '@/components/ui';
+import { Banner, brandColors, Button, Card, Choices, cx, Field, Heading, Icon, icons, Screen, Small } from '@/components/ui';
 import { useT } from '@/i18n';
+import { notify } from '@/lib/toast';
+import { clearError, rules, useValidate } from '@/lib/validate';
 import { FALLBACK_SUPPORT_PHONE, useConfig } from '@/lib/config';
 import { locateMe } from '@/lib/locate';
 import { call } from '@/lib/pay';
@@ -33,30 +35,43 @@ export default function Emergency() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
   const [done, setDone] = useState<Reply | null>(null);
   const onPlan = !!plan.data?.on_plan;
   const support = config.data?.support_phone ?? FALLBACK_SUPPORT_PHONE;
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const check = useValidate();
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
   const problemLabel = config.data?.emergency_problems.find((p) => p.key === problem)?.label ?? '';
 
   async function locate() {
     setLocating(true);
-    setError('');
     try {
       const here = await locateMe(t('help.locationOff'));
       setCoords({ lat: here.lat, lng: here.lng });
       if (here.address) set('address')(here.address);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      notify.error(e instanceof Error ? e.message : String(e));
     } finally {
       setLocating(false);
     }
   }
 
   async function send() {
-    setError('');
-    setErrors({});
+    const found = check(
+      { problem, ...form },
+      {
+        problem: [rules.required],
+        ...(onPlan ? {} : { address: [rules.required], area: [rules.required] }),
+        ...(onPlan || user ? {} : { name: [rules.required], phone: [rules.required, rules.phone] }),
+      },
+    );
+    setErrors(found);
+    if (Object.keys(found).length) {
+      notify.error(t('v.fixFields'));
+      return;
+    }
     try {
       const body = onPlan
         ? { site: site ?? plan.data?.sites[0]?.id, description: [problemLabel, form.details].filter(Boolean).join('. ') }
@@ -69,7 +84,7 @@ export default function Emergency() {
       setDone(res);
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error((e as ApiFailure).message);
     }
   }
 
@@ -102,7 +117,10 @@ export default function Emergency() {
       <Pressable onPress={() => call('112')}>
         <Banner tone="alert" title={t('help.fire')}>{t('help.fireSub')}</Banner>
       </Pressable>
-      <Choices options={config.data?.emergency_problems ?? []} value={problem} onChange={setProblem} tone="alert" error={errors.problem} />
+      <Choices options={config.data?.emergency_problems ?? []} value={problem} onChange={(k) => {
+          setProblem(k);
+          clearError(setErrors, 'problem');
+        }} tone="alert" error={errors.problem} />
 
       {onPlan ? (
         <Card>
@@ -135,7 +153,6 @@ export default function Emergency() {
         </Card>
       )}
       <Field label={t('form.anythingElse')} placeholder={t('ph.form.anythingElse')} value={form.details} onChangeText={set('details')} multiline error={errors.details ?? errors.description} />
-      <ErrorText>{error}</ErrorText>
     </Screen>
   );
 }

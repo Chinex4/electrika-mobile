@@ -2,7 +2,7 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { api } from '@/api/client';
-import { Body, Button, Card, ErrorText, Field, Screen, Title } from '@/components/ui';
+import { Body, Button, Card, CodeInput, Screen, Title } from '@/components/ui';
 import { useT } from '@/i18n';
 import { notify } from '@/lib/toast';
 import type { ApiFailure, CodeCheck, HelpRequest } from '@/types/api';
@@ -18,7 +18,7 @@ export default function ConfirmRequest() {
 
   async function submit(value = code) {
     const digits = value.replace(/\D/g, '');
-    if (digits.length < 6) return;
+    if (digits.length < 6) return setError(t('v.code'));
     setBusy(true);
     setError('');
     try {
@@ -38,7 +38,7 @@ export default function ConfirmRequest() {
       setTo(res.sent_to);
       notify.info(t('auth.codeSentAgain', { to: res.sent_to }));
     } catch (e) {
-      setError((e as ApiFailure).message);
+      notify.error((e as ApiFailure).message);
     }
   }
 
@@ -48,12 +48,18 @@ export default function ConfirmRequest() {
       <Title>{t('auth.codeTitle')}</Title>
       <Body>{t('help.codeSub', { to })}</Body>
       <Card>
-        <Field label={t('auth.code')} value={code} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="one-time-code" maxLength={7} autoFocus placeholder="••••••"
-          onChangeText={(v) => {
+        <CodeInput
+          label={t('auth.code')}
+          value={code}
+          onChange={(v) => {
             setCode(v);
-            if (v.replace(/\D/g, '').length === 6) submit(v);
-          }} />
-        <ErrorText>{error}</ErrorText>
+            setError('');
+          }}
+          onComplete={submit}
+          error={error || undefined}
+          autoFocus
+          disabled={busy}
+        />
         <Button title={t('help.confirmSend')} variant="danger" busy={busy} onPress={() => submit()} size="lg" />
         <Button title={t('auth.resend')} variant="ghost" onPress={resend} />
       </Card>

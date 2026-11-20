@@ -1,4 +1,6 @@
 import { Image } from 'expo-image';
+
+import { remoteImage } from '@/api/client';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
@@ -91,7 +93,7 @@ export default function ReviewScreen() {
       </Card>
       {r.photos.length ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          {r.photos.map((p) => (p.url ? <Image key={p.id} source={p.url} style={{ width: 130, height: 130, borderRadius: 14 }} contentFit="cover" /> : null))}
+          {r.photos.map((p) => (p.url ? <Image key={p.id} source={remoteImage(p.url)} style={{ width: 130, height: 130, borderRadius: 14 }} contentFit="cover" /> : null))}
         </ScrollView>
       ) : null}
       {r.parts.length ? (

@@ -11,7 +11,6 @@ import {
   Button,
   Choices,
   ConfirmSheet,
-  ErrorText,
   Field,
   HeroCard,
   Icon,
@@ -29,6 +28,7 @@ import { FALLBACK_SUPPORT_PHONE, useConfig } from '@/lib/config';
 import { call, whatsapp } from '@/lib/pay';
 import { notify } from '@/lib/toast';
 import { useDraft } from '@/lib/useDraft';
+import { clearError, rules, useValidate } from '@/lib/validate';
 import { pushIsOn, registerForPush } from '@/notifications/push';
 import { fieldErrors, useAction } from '@/store/hooks';
 import type { ApiFailure } from '@/types/api';
@@ -61,7 +61,7 @@ export function MeScreen({ children }: { children?: ReactNode }) {
       }
       notify.success(t('me.photoSaved'));
     } catch (e) {
-      notify.error((e as ApiFailure).message);
+      notify.error(t('me.photoFailed'), (e as ApiFailure).message);
     }
   }
 
@@ -156,6 +156,7 @@ export function MeScreen({ children }: { children?: ReactNode }) {
 
 function DetailsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useT();
+  const check = useValidate();
   const { user, updateMe } = useSession();
   const [form, setForm] = useDraft(
     { first_name: user?.first_name ?? '', last_name: user?.last_name ?? '', email: user?.email ?? '', preferred_channel: user?.preferred_channel || 'SMS' },
@@ -163,11 +164,16 @@ function DetailsSheet({ open, onClose }: { open: boolean; onClose: () => void })
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
 
   async function save() {
+    const found = check(form, { first_name: [rules.required], email: [rules.required, rules.email] });
+    setErrors(found);
+    if (Object.keys(found).length) return;
     setBusy(true);
-    setErrors({});
     try {
       const patch = user?.role === 'CLIENT' ? form : { first_name: form.first_name, last_name: form.last_name, email: form.email };
       await updateMe(patch);
@@ -204,15 +210,19 @@ function DetailsSheet({ open, onClose }: { open: boolean; onClose: () => void })
 
 function PasswordSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useT();
+  const check = useValidate();
   const { run, busy } = useAction();
   const [form, setForm] = useState({ old_password: '', new_password1: '', new_password2: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
 
   async function save() {
-    setErrors({});
-    setError('');
+    const found = check(form, { old_password: [rules.required], new_password1: [rules.password], new_password2: [rules.required, rules.sameAs('new_password1')] });
+    setErrors(found);
+    if (Object.keys(found).length) return;
     try {
       await run('/me/password/', { body: form, toastError: false });
       setForm({ old_password: '', new_password1: '', new_password2: '' });
@@ -220,7 +230,7 @@ function PasswordSheet({ open, onClose }: { open: boolean; onClose: () => void }
     } catch (e) {
       const f = fieldErrors(e);
       setErrors(f);
-      if (!Object.keys(f).length) setError((e as ApiFailure).message);
+      if (!Object.keys(f).length) notify.error((e as ApiFailure).message);
     }
   }
 
@@ -230,7 +240,6 @@ function PasswordSheet({ open, onClose }: { open: boolean; onClose: () => void }
       <Field label={t('me.currentPassword')} placeholder={t('ph.me.currentPassword')} value={form.old_password} onChangeText={set('old_password')} secureTextEntry autoComplete="current-password" error={errors.old_password} />
       <Field label={t('me.newPassword')} placeholder={t('ph.me.newPassword')} value={form.new_password1} onChangeText={set('new_password1')} secureTextEntry autoComplete="new-password" hint={t('auth.passwordHint')} error={errors.new_password1} />
       <Field label={t('me.newPasswordAgain')} placeholder={t('ph.me.newPasswordAgain')} value={form.new_password2} onChangeText={set('new_password2')} secureTextEntry autoComplete="new-password" error={errors.new_password2} />
-      <ErrorText>{error}</ErrorText>
     </Sheet>
   );
 }

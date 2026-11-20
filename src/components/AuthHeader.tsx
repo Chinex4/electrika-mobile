@@ -1,21 +1,25 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { brandColors, Icon, icons } from '@/components/ui';
+import { brandColors } from '@/components/ui/Icon';
+import { useStatusBarStyle } from '@/components/ui/statusBar';
 
-/** The brand band at the top of the sign-in screens. */
-export function AuthHeader({ title, sub }: { title: string; sub?: string }) {
+import { LogoTile, Wordmark } from './Logo';
+
+/**
+ * The brand band at the top of the sign-in screens: the ElectriKa logo on
+ * the website's own blue. With no title it shows the wordmark.
+ */
+export function AuthHeader({ title, sub, compact = false }: { title?: string; sub?: string; compact?: boolean }) {
   const insets = useSafeAreaInsets();
+  // Light text and icons on the blue band.
+  useStatusBarStyle('light');
   return (
-    <View className="overflow-hidden rounded-b-[32px]">
-      <LinearGradient colors={['#0A5FBE', '#003D7A']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
-      <View className="gap-3 px-6 pb-8" style={{ paddingTop: insets.top + 28 }}>
-        <View className="h-14 w-14 items-center justify-center rounded-2xl bg-white/15">
-          <Icon name={icons.bolt} size={28} color={brandColors.white} />
-        </View>
-        <Text className="text-[32px] font-extrabold tracking-tight text-white">{title}</Text>
-        {sub ? <Text className="text-base leading-6 text-white/85">{sub}</Text> : null}
+    <View className="overflow-hidden rounded-b-[32px]" style={{ backgroundColor: brandColors.brand }}>
+      <View className={compact ? 'gap-2 px-6 pb-7' : 'gap-3 px-6 pb-8'} style={{ paddingTop: insets.top + (compact ? 12 : 28) }}>
+        <LogoTile size={compact ? 44 : 56} />
+        {title ? <Text className="text-[30px] font-extrabold tracking-tight text-white">{title}</Text> : <Wordmark size={32} light />}
+        {sub ? <Text className="text-base leading-6 text-white/90">{sub}</Text> : null}
       </View>
     </View>
   );

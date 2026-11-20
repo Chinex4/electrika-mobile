@@ -2,8 +2,9 @@ import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { photoPart } from '@/api/client';
-import { Banner, Button, Choices, ErrorText, Field, Loading, OptionCards, PhotoStrip, Screen, Title } from '@/components/ui';
+import { Banner, Button, Choices, Field, Loading, OptionCards, PhotoStrip, Screen, Title } from '@/components/ui';
 import { useT } from '@/i18n';
+import { rules, useValidate } from '@/lib/validate';
 import { notify } from '@/lib/toast';
 import { fieldErrors, useAction, useResource } from '@/store/hooks';
 import type { ApiFailure, Site } from '@/types/api';
@@ -13,6 +14,7 @@ type Noticed = { signs: { key: string; label: string; urgent: boolean }[]; sites
 /** "I noticed something": the warning signs, how urgent, a photo. Urgent ones go straight to Dispatch. */
 export default function NoticedScreen() {
   const t = useT();
+  const check = useValidate();
   const { prefill } = useLocalSearchParams<{ prefill?: string }>();
   const q = useResource<Noticed>('/care/noticed/');
   const d = q.data;
@@ -23,12 +25,13 @@ export default function NoticedScreen() {
   const [description, setDescription] = useState(prefill ?? '');
   const [photos, setPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
   const anyUrgent = !!d?.signs.some((s) => s.urgent && signs.includes(s.key));
 
   async function send() {
     setErrors({});
-    setError('');
+    const found = check({ description }, { description: [rules.required, rules.minLength(10)] });
+    setErrors(found);
+    if (Object.keys(found).length) return notify.error(t('v.fixFields'));
     const body = new FormData();
     if (site || d?.sites[0]) body.append('site', site || String(d!.sites[0].id));
     signs.forEach((s) => body.append('signs', s));
@@ -41,7 +44,7 @@ export default function NoticedScreen() {
       router.back();
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error(Object.keys(fieldErrors(e)).length ? t('v.fixFields') : (e as ApiFailure).message);
     }
   }
 
@@ -57,7 +60,6 @@ export default function NoticedScreen() {
         options={[{ key: 'yes', label: t('care.urgentYes'), hint: t('care.urgentYesSub') }, { key: 'no', label: t('care.urgentNo'), hint: t('care.urgentNoSub') }]} error={errors.urgent} />
       <Field label={t('care.describe')} placeholder={t('ph.care.describe')} value={description} onChangeText={setDescription} multiline error={errors.description} />
       <PhotoStrip label={t('care.photo')} photos={photos} onChange={setPhotos} max={1} />
-      <ErrorText>{Object.keys(errors).length ? '' : error}</ErrorText>
     </Screen>
   );
 }

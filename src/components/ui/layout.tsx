@@ -1,6 +1,4 @@
-import { GlassView } from 'expo-glass-effect';
-import { LinearGradient } from 'expo-linear-gradient';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,12 +6,29 @@ import { FLOATING_BAR_HEIGHT } from '@/navigation/FloatingTabBar';
 import { HAS_LIQUID_GLASS } from '@/navigation/glass';
 
 import { brandColors, Icon, icons, type IconName } from './Icon';
+import { RevealContext, useKeyboardInset, useRevealingScroll, SCROLL_THROTTLE, type ViewRef } from './keyboard';
+import { useStatusBarStyle } from './statusBar';
+
+/**
+ * The small lift under a selected pill (English | Igbo, a segmented control).
+ * A style, not Tailwind's shadow-sm: shadow-sm runs on CSS variables, and a
+ * class that adds variables only when selected makes NativeWind "upgrade"
+ * the component mid-life. In development that upgrade printed a warning by
+ * walking every prop down into React's internals, where it touched the
+ * router's LinkingContext and crashed ("Couldn't find a LinkingContext
+ * context") on every language switch and tab change.
+ */
+export const raised = { shadowColor: '#1D3557', shadowOpacity: 0.12, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 } as const;
 
 export const cx = (...parts: (string | false | null | undefined)[]) => parts.filter(Boolean).join(' ');
 
 /**
  * A screen. Tab screens (tabbed) sit under the status bar and leave room for
  * the floating tab bar; pushed screens sit under their native header.
+ *
+ * With the keyboard up, the screen pads itself by exactly what the keyboard
+ * covers, so the footer (the main action of a form) stays above it and the
+ * focused field is scrolled into view.
  */
 export function Screen({
   children,
@@ -23,6 +38,7 @@ export function Screen({
   onRefresh,
   footer,
   className,
+  statusBar = 'dark',
 }: {
   children: ReactNode;
   scroll?: boolean;
@@ -32,33 +48,46 @@ export function Screen({
   /** Pinned to the bottom, e.g. the main action of a form. */
   footer?: ReactNode;
   className?: string;
+  /** What's behind the status bar: 'dark' text on the light page. */
+  statusBar?: 'light' | 'dark';
 }) {
+  useStatusBarStyle(statusBar);
   const insets = useSafeAreaInsets();
+  const frame = useRef<ViewRef>(null);
+  const keyboard = useKeyboardInset(frame);
+  const { ref: scrollRef, onScroll, reveal } = useRevealingScroll();
   const bottom = tabbed && !HAS_LIQUID_GLASS ? FLOATING_BAR_HEIGHT + Math.max(insets.bottom, 12) + 24 : footer ? 16 : insets.bottom + 32;
   const body = (
-    <View className={cx('flex-1 gap-3 px-4 pt-2', className)} style={{ paddingBottom: bottom }}>
+    <View className={cx('flex-1 gap-3 px-4 pt-2', className)} style={{ paddingBottom: keyboard && !footer ? 24 : bottom }}>
       {children}
     </View>
   );
   return (
     <SafeAreaView className="flex-1 bg-page" edges={tabbed ? ['top'] : []}>
-      {scroll ? (
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          contentInsetAdjustmentBehavior="automatic"
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-          refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={brandColors.brand} /> : undefined}>
-          {body}
-        </ScrollView>
-      ) : (
-        body
-      )}
-      {footer ? (
-        <View className="border-t border-line bg-white px-4 pt-3" style={{ paddingBottom: Math.max(insets.bottom, 12) }}>
-          {footer}
-        </View>
-      ) : null}
+      <View ref={frame} className="flex-1" style={{ paddingBottom: keyboard }}>
+        {scroll ? (
+          <RevealContext.Provider value={reveal}>
+            <ScrollView
+              ref={scrollRef}
+              onScroll={onScroll}
+              scrollEventThrottle={SCROLL_THROTTLE}
+              contentContainerStyle={{ flexGrow: 1 }}
+              contentInsetAdjustmentBehavior="automatic"
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
+              refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={brandColors.brand} /> : undefined}>
+              {body}
+            </ScrollView>
+          </RevealContext.Provider>
+        ) : (
+          body
+        )}
+        {footer ? (
+          <View className="border-t border-line bg-white px-4 pt-3" style={{ paddingBottom: keyboard ? 12 : Math.max(insets.bottom, 12) }}>
+            {footer}
+          </View>
+        ) : null}
+      </View>
     </SafeAreaView>
   );
 }
@@ -111,25 +140,17 @@ export function Card({
 }
 
 /**
- * The one hero card on a dashboard. Liquid Glass over the brand gradient on
- * iOS 26+; the brand gradient on its own everywhere else.
+ * The one hero card on a dashboard, in ElectriKa's own flat colours (the
+ * website's bg-brand / bg-navy / bg-alert). No gradient, no glass and no
+ * tint over it: Liquid Glass and the old gradient both washed the blue out
+ * to a greyish one, so it never matched the website.
  */
-export function HeroCard({ children, tone = 'brand' }: { children: ReactNode; tone?: 'brand' | 'alert' | 'navy' }) {
-  const stops = {
-    brand: ['#0A5FBE', '#003D7A'],
-    alert: ['#F2414A', '#B41A20'],
-    navy: ['#29466F', '#14253F'],
-  }[tone] as [string, string];
+export const HERO_TONES = { brand: brandColors.brand, alert: brandColors.alert, navy: brandColors.navy } as const;
+
+export function HeroCard({ children, tone = 'brand' }: { children: ReactNode; tone?: keyof typeof HERO_TONES }) {
   return (
-    <View className="overflow-hidden rounded-3xl">
-      <LinearGradient colors={stops} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
-      {HAS_LIQUID_GLASS ? (
-        <GlassView glassEffectStyle="regular" tintColor="rgba(0,61,122,0.35)" style={{ padding: 20, gap: 12, borderRadius: 24 }}>
-          {children}
-        </GlassView>
-      ) : (
-        <View className="gap-3 p-5">{children}</View>
-      )}
+    <View className="gap-3 overflow-hidden rounded-3xl p-5" style={{ backgroundColor: HERO_TONES[tone] }}>
+      {children}
     </View>
   );
 }

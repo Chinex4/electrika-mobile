@@ -31,8 +31,12 @@ describe('sign-in screen', () => {
       </Provider>,
     );
     await fireEvent.press(screen.getByText('Sign in'));
-    expect(await screen.findByText('Type your phone number or email, and your password.')).toBeTruthy();
+    // Each empty field says so next to itself.
+    expect(await screen.findAllByText('Please fill this in.')).toHaveLength(2);
     expect(fn).not.toHaveBeenCalled();
+    await fireEvent.changeText(screen.getByLabelText('Phone number or email'), 'me@example');
+    await fireEvent.press(screen.getByText('Sign in'));
+    expect(await screen.findByText('That email address doesn’t look right.')).toBeTruthy();
   });
 
   it('signs in and goes to the dashboard', async () => {
@@ -61,6 +65,8 @@ describe('sign-in screen', () => {
     await fireEvent.changeText(screen.getByLabelText('Phone number or email'), 'x');
     await fireEvent.changeText(screen.getByLabelText('Password'), 'y');
     await fireEvent.press(screen.getByText('Sign in'));
-    expect(await screen.findByText("Those details don't match an account.")).toBeTruthy();
+    // An action that fails is a toast; the fields stay as typed.
+    const { toast } = jest.requireMock('sonner-native');
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Those details don't match an account.", undefined));
   });
 });

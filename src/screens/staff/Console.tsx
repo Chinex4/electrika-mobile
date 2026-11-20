@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { Banner, Button, ErrorText, Failed, Field, HeroCard, icons, ListGroup, Loading, Row, Screen, SectionLabel, Stat, StatGrid, Title, type IconName } from '@/components/ui';
+import { Banner, Button, Failed, Field, HeroCard, icons, ListGroup, Loading, Row, Screen, SectionLabel, Stat, StatGrid, Title, type IconName } from '@/components/ui';
 import { useT } from '@/i18n';
 import { when } from '@/lib/format';
 import { useAppDispatch, useAppSelector, useResource } from '@/store/hooks';
@@ -45,7 +45,7 @@ function Unlock({ tabbed }: { tabbed?: boolean }) {
   const [error, setError] = useState('');
 
   async function unlock() {
-    if (!password) return;
+    if (!password) return setError(t('v.required'));
     setError('');
     try {
       await dispatch(unlockConsole(password)).unwrap();
@@ -65,9 +65,11 @@ function Unlock({ tabbed }: { tabbed?: boolean }) {
         <Text className="text-[13px] text-white/75">{t('console.idle', { n: lock.idleMinutes })}</Text>
       </HeroCard>
       {lock.blocked ? <Banner tone="alert">{t('console.blocked')}</Banner> : null}
-      <Field label={t('auth.password')} placeholder={t('ph.auth.password')} secureTextEntry autoComplete="current-password" textContentType="password" value={password} onChangeText={setPassword}
-        onSubmitEditing={unlock} returnKeyType="go" icon={icons.lock} />
-      <ErrorText>{error}</ErrorText>
+      <Field label={t('auth.password')} placeholder={t('ph.auth.password')} secureTextEntry autoComplete="current-password" textContentType="password" value={password} onChangeText={(v) => {
+          setPassword(v);
+          setError('');
+        }}
+        onSubmitEditing={unlock} returnKeyType="go" icon={icons.lock} error={error || undefined} />
       <Button title={t('office.unlock')} icon={{ sf: 'lock.open.fill', md: 'lock_open' }} busy={lock.unlocking} onPress={unlock} size="lg" />
     </Screen>
   );

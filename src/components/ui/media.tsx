@@ -2,7 +2,8 @@ import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
-import { useT } from '@/i18n';
+import { apiLanguage } from '@/api/client';
+import { translate, useT } from '@/i18n';
 import { notify } from '@/lib/toast';
 
 import { brandColors, Icon, icons } from './Icon';
@@ -15,10 +16,27 @@ export async function pickPhoto(source: 'camera' | 'library' = 'library', square
     notify.warning(source === 'camera' ? 'Camera is off for ElectriKa.' : 'Photos are off for ElectriKa.', 'You can turn it on in Settings.');
     return null;
   }
-  const options: ImagePicker.ImagePickerOptions = { mediaTypes: ['images'], quality: 0.7, allowsEditing: square, aspect: square ? [1, 1] : undefined };
+  const options: ImagePicker.ImagePickerOptions = {
+    mediaTypes: ['images'],
+    quality: 0.7,
+    allowsEditing: square,
+    aspect: square ? [1, 1] : undefined,
+    // iPhones keep photos as HEIC, which the server can't read: ask iOS for a
+    // JPEG copy (it converts as it hands the photo over).
+    preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+  };
   const res = source === 'camera' ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
-  return res.canceled ? null : (res.assets[0]?.uri ?? null);
+  const asset = res.canceled ? null : res.assets[0];
+  if (!asset) return null;
+  if (asset.fileSize && asset.fileSize > MAX_PHOTO_BYTES) {
+    notify.error(translate(apiLanguage(), 'me.photoTooBig'));
+    return null;
+  }
+  return asset.uri;
 }
+
+/** The server's limit (apps/accounts/avatars.py: 5 MB). */
+export const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
 /** A row of photos with "Take" and "Choose" tiles; used for job reports and problem photos. */
 export function PhotoStrip({ photos, onChange, max = 6, label }: { photos: string[]; onChange: (uris: string[]) => void; max?: number; label?: string }) {

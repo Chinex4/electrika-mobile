@@ -98,6 +98,25 @@ Background location while "on my way" needs the `expo-location` background permi
 - Builds with `eas build`: an internal test track first, then Play Store and App Store.
 - OTA updates with `eas update`.
 
+## Fixes, 20 Nov 2026
+
+- Brand: the PWA's logo as app icon, native splash (#0051A2 with the mark) and an
+  in-app launch animation matching templates/pwa/_splash.html; hero cards in flat
+  #0051A2 (no glass or gradient); the logo on the sign-in screens.
+- "Couldn't find a LinkingContext context": a selected pill added Tailwind's
+  shadow-sm (CSS variables), making NativeWind upgrade the component; its dev
+  warning walked the props into React internals and hit the router's context.
+  Selected pills now use the `raised` style instead.
+- Forgotten password by 6-digit code (Django apps/accounts/reset.py), with a
+  6-box CodeInput on every code screen.
+- Forms: Screen and Sheet pad for the keyboard and scroll the focused field into
+  view; checks before sending (src/lib/validate.ts) with errors under fields;
+  action results as toasts. Sheets are sized to their content.
+- Status bar follows the screen (useStatusBarStyle). Profile photos: JPEG from
+  the iOS picker, shown with the app's token (the server's /files/ view now
+  accepts it), and a new file name for each new photo.
+- Development: EXPO_PUBLIC_API_URL points the app at a local server.
+
 ## Rules for building
 
 - Read `AGENTS.md`. Check the SDK 58 docs before using any Expo API.

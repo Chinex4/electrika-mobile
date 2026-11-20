@@ -1,11 +1,12 @@
 import * as Haptics from 'expo-haptics';
-import { forwardRef, useState, type ComponentRef, type ReactNode } from 'react';
+import { forwardRef, useContext, useImperativeHandle, useRef, useState, type ComponentRef, type ReactNode } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { useT } from '@/i18n';
 
 import { brandColors, Icon, icons, type IconName } from './Icon';
-import { cx } from './layout';
+import { RevealContext } from './keyboard';
+import { cx, raised } from './layout';
 
 const tap = () => {
   if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
@@ -113,6 +114,10 @@ export type FieldRef = ComponentRef<typeof TextInput>;
 export const Field = forwardRef<FieldRef, FieldProps>(function Field({ label, error, hint, icon, multiline, className, secureTextEntry, ...props }, ref) {
   const t = useT();
   const [focused, setFocused] = useState(false);
+  const input = useRef<FieldRef>(null);
+  useImperativeHandle(ref, () => input.current as FieldRef);
+  // Scrolls this field into view above the keyboard (Screen and Sheet provide it).
+  const reveal = useContext(RevealContext);
   // Password fields get an eye to show what was typed.
   const [hidden, setHidden] = useState(true);
   return (
@@ -126,22 +131,27 @@ export const Field = forwardRef<FieldRef, FieldProps>(function Field({ label, er
         )}>
         {icon ? <Icon name={icon} size={17} color={brandColors.faint} /> : null}
         <TextInput
-          ref={ref}
+          ref={input}
           placeholderTextColor={brandColors.faint}
           multiline={multiline}
           secureTextEntry={secureTextEntry && hidden}
           accessibilityLabel={label}
           textAlignVertical={multiline ? 'top' : 'center'}
           {...props}
+          // No lineHeight on a one-line input: iOS lays the typed text out by
+          // it but the placeholder by the font, so a lineHeight (Tailwind's
+          // text-base brings one) made the text drop once typing started.
+          style={multiline ? { fontSize: 16, lineHeight: 22, paddingTop: 2, paddingBottom: 2 } : { fontSize: 16, paddingTop: 0, paddingBottom: 0, height: 48 }}
           onFocus={(e) => {
             setFocused(true);
+            reveal?.(input.current);
             props.onFocus?.(e);
           }}
           onBlur={(e) => {
             setFocused(false);
             props.onBlur?.(e);
           }}
-          className="flex-1 py-2 text-base text-navy"
+          className="flex-1 text-navy"
         />
         {secureTextEntry ? (
           <Pressable
@@ -267,7 +277,8 @@ export function Segmented<K extends string>({ value, onChange, options }: { valu
             tap();
             onChange(o.key);
           }}
-          className={cx('flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-2.5', value === o.key && 'bg-white shadow-sm')}>
+          style={value === o.key ? raised : undefined}
+          className={cx('flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-2.5', value === o.key && 'bg-white')}>
           <Text className={cx('text-sm font-semibold', value === o.key ? 'text-brand' : 'text-muted')}>{o.label}</Text>
           {o.count ? (
             <View className={cx('rounded-full px-1.5', value === o.key ? 'bg-haze' : 'bg-white/70')}>

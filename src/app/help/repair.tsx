@@ -4,8 +4,9 @@ import { View } from 'react-native';
 
 import { photoPart } from '@/api/client';
 import { SelectField } from '@/components/SelectField';
-import { Banner, Button, Card, Choices, ErrorText, Field, Heading, KeyValue, OptionCards, PhotoStrip, Progress, Screen, Small } from '@/components/ui';
+import { Banner, Button, Card, Choices, Field, Heading, KeyValue, OptionCards, PhotoStrip, Progress, Screen, Small } from '@/components/ui';
 import { useT } from '@/i18n';
+import { clearError, rules, useValidate } from '@/lib/validate';
 import { useConfig } from '@/lib/config';
 import { naira } from '@/lib/format';
 import { notify } from '@/lib/toast';
@@ -16,6 +17,7 @@ import type { ApiFailure, CodeCheck, HelpRequest } from '@/types/api';
 /** Book a repair in three steps, as on the website: what and when, where and who, then check and send. */
 export default function Repair() {
   const t = useT();
+  const check = useValidate();
   const user = useAppSelector(selectUser);
   const config = useConfig();
   const c = config.data;
@@ -24,21 +26,30 @@ export default function Repair() {
   const [form, setForm] = useState({ job: '', day: 'TOMORROW', date: '', slot: 'ANY', details: '', address: '', area: '', landmark: '', name: user?.name ?? '', phone: user?.phone_number ?? '', email: user?.email ?? '' });
   const [photos, setPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
   const label = (list: { key: string; label: string }[] | undefined, key: string) => list?.find((x) => x.key === key)?.label ?? '';
 
   function next() {
-    setError('');
     if (step === 0 && !form.job) return setErrors({ job: t('repair.chooseJob') });
     if (step === 0 && form.day === 'PICK' && !/^\d{4}-\d{2}-\d{2}$/.test(form.date)) return setErrors({ date: t('repair.dateFormat') });
-    if (step === 1 && (!form.details.trim() || !form.address.trim())) return setErrors({ ...(form.details.trim() ? {} : { details: t('repair.needDetails') }), ...(form.address.trim() ? {} : { address: t('form.required') }) });
+    if (step === 1) {
+      const found = check(form, {
+        details: [rules.required],
+        address: [rules.required],
+        area: [rules.required],
+        ...(user ? {} : { name: [rules.required], phone: [rules.required, rules.phone], email: [rules.email] }),
+      });
+      if (!form.details.trim()) delete found.details;
+      if (Object.keys(found).length || !form.details.trim()) return setErrors({ ...found, ...(form.details.trim() ? {} : { details: t('repair.needDetails') }) });
+    }
     setErrors({});
     setStep((s) => s + 1);
   }
 
   async function send() {
-    setError('');
     const body = new FormData();
     for (const [k, v] of Object.entries(form)) if (v) body.append(k, v);
     if (photos[0]) body.append('photo', photoPart(photos[0]));
@@ -50,7 +61,7 @@ export default function Repair() {
     } catch (e) {
       const f = fieldErrors(e);
       setErrors(f);
-      setError((e as ApiFailure).message);
+      notify.error(Object.keys(f).length ? t('v.fixFields') : (e as ApiFailure).message);
       if (f.job || f.day || f.date || f.slot) setStep(0);
       else if (Object.keys(f).length) setStep(1);
     }
@@ -102,7 +113,6 @@ export default function Repair() {
           <Small>{form.details}</Small>
         </Card>
       ) : null}
-      <ErrorText>{error}</ErrorText>
     </Screen>
   );
 }

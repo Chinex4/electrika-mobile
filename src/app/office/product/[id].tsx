@@ -5,8 +5,10 @@ import { View } from 'react-native';
 
 import { photoPart } from '@/api/client';
 import { SelectField } from '@/components/SelectField';
-import { Button, Card, ConfirmSheet, ErrorText, Field, icons, Loading, pickPhoto, Screen, Toggle } from '@/components/ui';
+import { Button, Card, ConfirmSheet, Field, icons, Loading, pickPhoto, Screen, Toggle } from '@/components/ui';
 import { useT } from '@/i18n';
+import { clearError, rules, useValidate } from '@/lib/validate';
+import { notify } from '@/lib/toast';
 import { useDraft } from '@/lib/useDraft';
 import { fieldErrors, useAction, useResource } from '@/store/hooks';
 import type { ApiFailure } from '@/types/api';
@@ -19,6 +21,7 @@ const blank = { name: '', category: '', new_category: '', summary: '', price: ''
 /** Add or edit a Shop product (all the website form's fields). */
 export default function ProductEdit() {
   const t = useT();
+  const check = useValidate();
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = id === 'new';
   const q = useResource<StaffProduct>(isNew ? null : `/office/products/${id}/`);
@@ -27,7 +30,6 @@ export default function ProductEdit() {
   const { run, busy } = useAction();
   const [photo, setPhoto] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useDraft(
     p
@@ -36,11 +38,16 @@ export default function ProductEdit() {
       : blank,
     p?.id ?? 'new',
   );
-  const set = <K extends keyof typeof blank>(k: K) => (v: (typeof blank)[K]) => setForm((f) => ({ ...f, [k]: v }));
+  const set = <K extends keyof typeof blank>(k: K) => (v: (typeof blank)[K]) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
 
   async function save() {
     setErrors({});
-    setError('');
+    const found = check(form, { name: [rules.required], summary: [rules.required], price: form.quote_only ? [rules.amount] : [rules.required, rules.amount] });
+    setErrors(found);
+    if (Object.keys(found).length) return notify.error(t('v.fixFields'));
     const body = new FormData();
     for (const [k, v] of Object.entries(form)) {
       if (typeof v === 'boolean') {
@@ -54,7 +61,7 @@ export default function ProductEdit() {
       router.back();
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error(Object.keys(fieldErrors(e)).length ? t('v.fixFields') : (e as ApiFailure).message);
     }
   }
 
@@ -82,7 +89,6 @@ export default function ProductEdit() {
         <Toggle label={t('products.inStock')} value={form.in_stock} onChange={set('in_stock')} />
         <Toggle label={t('products.inShop')} value={form.active} onChange={set('active')} />
       </Card>
-      <ErrorText>{error}</ErrorText>
       {!isNew ? <Button title={t('products.delete')} variant="ghost" icon={icons.trash} onPress={() => setDeleting(true)} /> : null}
       <ConfirmSheet open={deleting} onClose={() => setDeleting(false)} title={t('products.delete')} message={t('products.deleteSub')} confirm={t('products.delete')} busy={busy}
         onConfirm={async () => { try { await run(`/office/products/${id}/`, { method: 'DELETE', invalidate: ['/office/products/', '/shop/'] }); setDeleting(false); router.back(); } catch { /* toast */ } }} />

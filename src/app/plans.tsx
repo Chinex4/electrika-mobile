@@ -5,6 +5,8 @@ import { Text, View } from 'react-native';
 import { SelectField } from '@/components/SelectField';
 import { Banner, Between, brandColors, Button, Card, Check, Choices, ErrorText, Failed, Field, Icon, icons, Loading, Pill, Screen, Sheet, Small, Title } from '@/components/ui';
 import { useT } from '@/i18n';
+import { clearError, rules, useValidate } from '@/lib/validate';
+import { notify } from '@/lib/toast';
 import { useConfig } from '@/lib/config';
 import { naira } from '@/lib/format';
 import { fieldErrors, useAction, useAppSelector, useResource } from '@/store/hooks';
@@ -56,6 +58,7 @@ export default function PlansScreen() {
 
 function PlanRequest({ plan, onClose }: { plan: string | null; onClose: () => void }) {
   const t = useT();
+  const check = useValidate();
   const user = useAppSelector(selectUser);
   const config = useConfig();
   const choices = useResource<FormChoices>(plan ? '/enquiries/choices/' : null, { auth: false });
@@ -64,18 +67,22 @@ function PlanRequest({ plan, onClose }: { plan: string | null; onClose: () => vo
   const [chosen, setChosen] = useState<string | null>(null);
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
 
   async function send() {
     setErrors({});
-    setError('');
+    const found = check(form, { name: [rules.required], phone: [rules.required, rules.phone], email: [rules.email], address: [rules.required] });
+    setErrors(found);
+    if (Object.keys(found).length) return notify.error(t('v.fixFields'));
     try {
       await run('/plans/request/', { body: { ...form, plan: chosen ?? plan, consent: consent ? 'on' : '' }, auth: !!user, toastError: false });
       onClose();
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error(Object.keys(fieldErrors(e)).length ? t('v.fixFields') : (e as ApiFailure).message);
     }
   }
 
@@ -91,7 +98,6 @@ function PlanRequest({ plan, onClose }: { plan: string | null; onClose: () => vo
       <Field label={t('plans.covered')} placeholder={t('ph.plans.covered')} value={form.covered} onChangeText={set('covered')} multiline error={errors.covered} />
       <Check label={t('plans.consent')} value={consent} onChange={setConsent} />
       {errors.consent ? <ErrorText>{errors.consent}</ErrorText> : null}
-      <ErrorText>{Object.keys(errors).length ? '' : error}</ErrorText>
     </Sheet>
   );
 }

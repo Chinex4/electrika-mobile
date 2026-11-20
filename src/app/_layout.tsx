@@ -5,23 +5,27 @@ import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Provider } from 'react-redux';
 import { Toaster } from 'sonner-native';
 
 import { HOME_FOR } from '@/auth/roles';
+import { AnimatedSplash } from '@/components/AnimatedSplash';
 import { brandColors } from '@/components/ui';
 import { routeForNotification } from '@/notifications/route';
 import { bootStore, store } from '@/store';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectSession } from '@/store/selectors';
 import { resumeJourney } from '@/store/slices/journey';
-import { restoreSession } from '@/store/slices/session';
+import { changeLanguage } from '@/store/slices/settings';
+import { restoreSession, setPhoto, signIn } from '@/store/slices/session';
 
 SplashScreen.preventAutoHideAsync();
 bootStore();
+// Development only: lets a debugger drive the app (switch language, navigate).
+if (__DEV__) Object.assign(globalThis, { __electrika: { store, router, changeLanguage, signIn, setPhoto } });
 
 /** Tapping a notification opens the screen it is about, or the person's dashboard. */
 function NotificationTaps() {
@@ -43,11 +47,23 @@ function Root() {
     dispatch(restoreSession());
   }, [dispatch]);
   useEffect(() => {
-    if (status !== 'loading') SplashScreen.hideAsync();
     if (status === 'signed-in' && user?.role === 'TECHNICIAN') dispatch(resumeJourney());
   }, [status, user?.role, dispatch]);
 
-  if (status === 'loading') return null;
+  // The launch animation plays over everything until the session is known
+  // (at least long enough to draw the mark), then opens onto the app.
+  const [splash, setSplash] = useState(true);
+  const splashDone = useCallback(() => setSplash(false), []);
+
+  return (
+    <>
+      {status === 'loading' ? null : <AppStack />}
+      {splash ? <AnimatedSplash ready={status !== 'loading'} onDone={splashDone} /> : null}
+    </>
+  );
+}
+
+function AppStack() {
   return (
     <>
       <StatusBar style="dark" />

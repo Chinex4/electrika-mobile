@@ -5,3 +5,6 @@ export * from './Icon';
 export * from './layout';
 export * from './media';
 export * from './Sheet';
+export * from './keyboard';
+export * from './statusBar';
+export * from './CodeInput';

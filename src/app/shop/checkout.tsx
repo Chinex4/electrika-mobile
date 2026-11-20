@@ -1,17 +1,18 @@
 import { router, Stack } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { SelectField } from '@/components/SelectField';
-import { Banner, Between, Button, Card, Divider, ErrorText, Field, Heading, icons, KeyValue, OptionCards, Screen, SectionLabel, Toggle } from '@/components/ui';
+import { Banner, Between, Button, Card, Divider, Field, Heading, icons, KeyValue, OptionCards, Screen, SectionLabel, Toggle } from '@/components/ui';
 import { useT } from '@/i18n';
+import { clearError, rules, useValidate } from '@/lib/validate';
 import { useConfig } from '@/lib/config';
 import { naira } from '@/lib/format';
 import { openCheckout } from '@/lib/pay';
 import { notify } from '@/lib/toast';
 import { fieldErrors, useAction, useAppDispatch, useAppSelector, useResource } from '@/store/hooks';
 import { selectCartItems, selectPricedCart, selectUser } from '@/store/selectors';
-import { clearCart } from '@/store/slices/cart';
+import { clearCart, priceCart } from '@/store/slices/cart';
 import type { ApiFailure, Order } from '@/types/api';
 
 type Delivery = { zone: { fee: string; days: string } | null; card_ready: boolean };
@@ -19,10 +20,17 @@ type Delivery = { zone: { fee: string; days: string } | null; card_ready: boolea
 /** Checkout: delivery or pickup, then card (Paystack) or bank transfer. */
 export default function Checkout() {
   const t = useT();
+  const check = useValidate();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
   const items = useAppSelector(selectCartItems);
   const priced = useAppSelector(selectPricedCart);
+  // Prices come from the server; fetch them here too if checkout was opened
+  // without the cart (after a restart the cart is kept, its prices aren't).
+  const unpriced = !priced && items.length > 0;
+  useEffect(() => {
+    if (unpriced) dispatch(priceCart());
+  }, [unpriced, dispatch]);
   const config = useConfig();
   const { run, busy } = useAction();
   const [form, setForm] = useState({
@@ -37,8 +45,10 @@ export default function Checkout() {
     fitting: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
-  const set = <K extends keyof typeof form>(k: K) => (v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
+  const set = <K extends keyof typeof form>(k: K) => (v: (typeof form)[K]) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
   const delivery = useResource<Delivery>(`/shop/delivery/?area=${form.area}`, { auth: false });
   const fee = form.method === 'DELIVER' ? Number(delivery.data?.zone?.fee ?? 0) : 0;
   const subtotal = Number(priced?.subtotal ?? 0);
@@ -46,7 +56,9 @@ export default function Checkout() {
 
   async function place() {
     setErrors({});
-    setError('');
+    const found = check(form, { name: [rules.required], phone: [rules.required, rules.phone], email: [rules.email] });
+    setErrors(found);
+    if (Object.keys(found).length) return notify.error(t('v.fixFields'));
     try {
       const res = await run<{ order: Order; checkout_url: string | null; payment_error?: string }>('/shop/checkout/', {
         body: { ...form, items: items.map(({ product_id, qty }) => ({ product_id, qty })) },
@@ -71,7 +83,7 @@ export default function Checkout() {
     } catch (e) {
       const f = fieldErrors(e);
       setErrors(f);
-      setError(Object.keys(f).length ? t('form.checkFields') : (e as ApiFailure).message);
+      notify.error(Object.keys(f).length ? t('v.fixFields') : (e as ApiFailure).message);
     }
   }
 
@@ -121,7 +133,7 @@ export default function Checkout() {
         onChange={set('payment')}
         error={errors.payment}
         options={[
-          { key: 'CARD', label: t('shop.payCard'), hint: delivery.data && !delivery.data.card_ready ? t('shop.cardOff') : t('shop.payCardSub'), icon: icons.card },
+          { key: 'CARD', label: t('shop.payCard'), hint: t('shop.payCardSub'), icon: icons.card },
           { key: 'TRANSFER', label: t('shop.payTransfer'), hint: t('shop.payTransferSub'), icon: icons.money },
         ]}
       />
@@ -135,7 +147,6 @@ export default function Checkout() {
         {form.method === 'DELIVER' ? <KeyValue label={t('shop.delivery')} value={delivery.data?.zone ? naira(fee) : t('shop.chooseArea')} /> : null}
         <KeyValue label={t('shop.total')} value={naira(subtotal + fee)} strong />
       </Card>
-      <ErrorText>{error}</ErrorText>
     </Screen>
   );
 }

@@ -3,8 +3,10 @@ import { useState } from 'react';
 
 import { photoPart } from '@/api/client';
 import { SelectField } from '@/components/SelectField';
-import { Button, Choices, ErrorText, Field, Loading, OptionCards, PhotoStrip, Screen, Title } from '@/components/ui';
+import { Button, Choices, Field, Loading, OptionCards, PhotoStrip, Screen, Title } from '@/components/ui';
 import { useT } from '@/i18n';
+import { clearError, rules, useValidate } from '@/lib/validate';
+import { notify } from '@/lib/toast';
 import { useConfig } from '@/lib/config';
 import { fieldErrors, useAction, useAppSelector, useResource } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
@@ -14,6 +16,7 @@ type Choices_ = { kinds: (Choice & { hint: string })[]; durations: Choice[] };
 
 export default function NewPowerReport() {
   const t = useT();
+  const check = useValidate();
   const user = useAppSelector(selectUser);
   const config = useConfig();
   const q = useResource<Choices_>('/voice/', { auth: !!user });
@@ -21,12 +24,16 @@ export default function NewPowerReport() {
   const [form, setForm] = useState({ kind: '', duration: 'WEEK', details: '', meter_number: '', area: '', address: '', name: user?.name ?? '', phone: user?.phone_number ?? '', email: user?.email ?? '' });
   const [photos, setPhotos] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
 
   async function send() {
     setErrors({});
-    setError('');
+    const found = check(form, { kind: [rules.required], ...(user ? {} : { name: [rules.required], phone: [rules.required, rules.phone], email: [rules.email] }) });
+    setErrors(found);
+    if (Object.keys(found).length) return notify.error(t('v.fixFields'));
     const body = new FormData();
     for (const [k, v] of Object.entries(form)) if (v) body.append(k, v);
     if (photos[0]) body.append('photo', photoPart(photos[0]));
@@ -35,7 +42,7 @@ export default function NewPowerReport() {
       router.replace(`/power/${r.token}`);
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error(Object.keys(fieldErrors(e)).length ? t('v.fixFields') : (e as ApiFailure).message);
     }
   }
 
@@ -58,7 +65,6 @@ export default function NewPowerReport() {
           <Field label={t('auth.email')} placeholder={t('ph.auth.email')} value={form.email} onChangeText={set('email')} keyboardType="email-address" autoCapitalize="none" />
         </>
       ) : null}
-      <ErrorText>{Object.keys(errors).length ? '' : error}</ErrorText>
     </Screen>
   );
 }

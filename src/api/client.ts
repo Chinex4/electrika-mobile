@@ -9,8 +9,10 @@ import { Platform } from 'react-native';
 
 import type { ApiFailure, Lang } from '@/types/api';
 
+// EXPO_PUBLIC_API_URL points a development copy at a local or test server
+// (e.g. http://127.0.0.1:8000/api); otherwise app.json's apiUrl (the live site).
 export const API_URL: string =
-  (Constants.expoConfig?.extra?.apiUrl as string | undefined) ?? 'https://electrika.ng/api';
+  process.env.EXPO_PUBLIC_API_URL || ((Constants.expoConfig?.extra?.apiUrl as string | undefined) ?? 'https://electrika.ng/api');
 
 const TOKEN_KEY = 'electrika.token';
 
@@ -21,7 +23,9 @@ let memoryToken: string | null = null;
 export const tokenStore = {
   get: async () => {
     try {
-      return (await SecureStore.getItemAsync(TOKEN_KEY)) ?? memoryToken;
+      const saved = await SecureStore.getItemAsync(TOKEN_KEY);
+      if (saved) memoryToken = saved;
+      return saved ?? memoryToken;
     } catch {
       return memoryToken;
     }
@@ -43,6 +47,18 @@ export const tokenStore = {
     }
   },
 };
+
+/**
+ * An image from the server, as expo-image's source. Private files (a profile
+ * photo, job photos) are served at /files/ to whoever is signed in, so the
+ * app's token goes with the request; without it the server sent the sign-in
+ * page instead and the photo never showed.
+ */
+export function remoteImage(url: string) {
+  const origin = API_URL.replace(/\/api\/?$/, '');
+  if (memoryToken && url.startsWith(`${origin}/files/`)) return { uri: url, headers: { Authorization: `Token ${memoryToken}` } };
+  return { uri: url };
+}
 
 /** Kept in step with the store's language (src/store/index.ts). */
 let language: Lang = 'en';

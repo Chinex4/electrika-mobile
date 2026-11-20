@@ -9,12 +9,14 @@
     "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "ng.electrika.app",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "icon": "./assets/images/icon.png"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundColor": "#FFFFFF"
+        "monochromeImage": "./assets/images/android-icon-monochrome.png",
+        "backgroundColor": "#0051A2"
       },
       "predictiveBackGestureEnabled": false,
       "package": "ng.electrika.app"
@@ -28,9 +30,20 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#0051A2",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 120
+          "imageWidth": 120,
+          "resizeMode": "contain",
+          "ios": {
+            "backgroundColor": "#0051A2",
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 120
+          },
+          "android": {
+            "backgroundColor": "#0051A2",
+            "image": "./assets/images/splash-icon.png",
+            "imageWidth": 120
+          }
         }
       ],
       "expo-secure-store",
@@ -65,6 +78,7 @@
     },
     "extra": {
       "apiUrl": "https://electrika.ng/api"
-    }
+    },
+    "backgroundColor": "#0051A2"
   }
 }

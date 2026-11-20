@@ -1,6 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 
-import { cx } from '@/components/ui';
+import { cx, raised } from '@/components/ui';
 import { useLanguage, type Lang } from '@/i18n';
 
 const CHOICES: { lang: Lang; label: string }[] = [
@@ -21,7 +21,8 @@ export function LanguageSwitch() {
             accessibilityRole="radio"
             accessibilityState={{ checked: on }}
             onPress={() => on || setLang(c.lang)}
-            className={cx('rounded-full px-5 py-2', on && 'bg-white shadow-sm')}>
+            style={on ? raised : undefined}
+            className={cx('rounded-full px-5 py-2', on && 'bg-white')}>
             <Text className={cx('text-sm font-semibold', on ? 'text-brand' : 'text-muted')}>{c.label}</Text>
           </Pressable>
         );

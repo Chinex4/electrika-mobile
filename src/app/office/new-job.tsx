@@ -2,8 +2,10 @@ import { router, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import { SelectField } from '@/components/SelectField';
-import { Banner, Button, Choices, ErrorText, Field, Loading, OptionCards, Screen } from '@/components/ui';
+import { Banner, Button, Choices, Field, Loading, OptionCards, Screen } from '@/components/ui';
 import { useT } from '@/i18n';
+import { clearError, rules, useValidate } from '@/lib/validate';
+import { notify } from '@/lib/toast';
 import { fieldErrors, useAction, useResource } from '@/store/hooks';
 import type { ApiFailure, Choice, Job, Site } from '@/types/api';
 
@@ -12,6 +14,7 @@ type NewJob = { sites: (Site & { client: string })[]; job_types: Choice[]; revie
 /** Log a job against a client's site, as Dispatch or an Account Manager does on the website. */
 export default function NewJobScreen() {
   const t = useT();
+  const check = useValidate();
   const [search, setSearch] = useState('');
   const [term, setTerm] = useState('');
   useEffect(() => {
@@ -23,18 +26,22 @@ export default function NewJobScreen() {
   const { run, busy } = useAction();
   const [form, setForm] = useState({ site: '', job_type: '', description: '', scheduled_for: '', report_review: '', technician: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
 
   async function save() {
     setErrors({});
-    setError('');
+    const found = check(form, { site: [rules.required], job_type: [rules.required], description: [rules.required] });
+    setErrors(found);
+    if (Object.keys(found).length) return notify.error(t('v.fixFields'));
     try {
       const res = await run<{ job: Job }>('/dispatch/new-job/', { body: form, invalidate: ['/dispatch/', '/office/'], toastError: false });
       router.replace(`/job/${res.job.id}`);
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error(Object.keys(fieldErrors(e)).length ? t('v.fixFields') : (e as ApiFailure).message);
     }
   }
 
@@ -56,7 +63,6 @@ export default function NewJobScreen() {
           ) : (
             <Banner tone="info">{t('newJob.amNote')}</Banner>
           )}
-          <ErrorText>{error}</ErrorText>
         </>
       ) : null}
     </Screen>

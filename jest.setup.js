@@ -32,13 +32,15 @@ jest.mock('react-native-reanimated', () => {
     ...Animated,
     useSharedValue: (v) => ({ value: v }),
     useAnimatedStyle: (fn) => fn(),
+    useAnimatedProps: (fn) => fn(),
+    withDelay: (_ms, v) => v,
     useDerivedValue: (fn) => ({ value: fn() }),
     withSpring: passthrough,
     withTiming: passthrough,
     withRepeat: passthrough,
     withSequence: (...v) => v[v.length - 1],
     runOnJS: (fn) => fn,
-    Easing: { linear: passthrough, ease: passthrough, bezier: () => passthrough },
+    Easing: { linear: passthrough, ease: passthrough, quad: passthrough, bezier: () => passthrough, in: () => passthrough, out: () => passthrough, inOut: () => passthrough },
   };
 });
 jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);

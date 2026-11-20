@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform } from 'react-native';
 
 import { useSession } from '@/auth/session';
-import { Banner, Button, Card, ErrorText, Field, icons, Screen, Small, Title } from '@/components/ui';
+import { Banner, Button, Card, Field, icons, Screen, Small, Title } from '@/components/ui';
 import { useT } from '@/i18n';
+import { notify } from '@/lib/toast';
+import { clearError, rules, useValidate } from '@/lib/validate';
 import { fieldErrors, useResource } from '@/store/hooks';
 import type { ApiFailure, Config } from '@/types/api';
 
@@ -17,14 +18,23 @@ export default function SignUp() {
   const emailRequired = config.data?.codes_by === 'EMAIL';
   const [form, setForm] = useState({ name: '', phone: '', email: '', password: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const check = useValidate();
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
 
   async function submit() {
+    const found = check(form, {
+      name: [rules.required],
+      phone: [rules.required, rules.phone],
+      email: emailRequired ? [rules.required, rules.email] : [rules.email],
+      password: [rules.password],
+    });
+    setErrors(found);
+    if (Object.keys(found).length) return;
     setBusy(true);
-    setError('');
-    setErrors({});
     try {
       const { check } = await signUp(form);
       if (check) router.push({ pathname: '/code', params: { check: check.check, to: check.sent_to, email: check.can_email ? '1' : '' } });
@@ -32,15 +42,14 @@ export default function SignUp() {
     } catch (e) {
       const fields = fieldErrors(e);
       setErrors(fields);
-      if (!Object.keys(fields).length) setError((e as ApiFailure).message);
+      if (!Object.keys(fields).length) notify.error((e as ApiFailure).message);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Screen>
+    <Screen>
         <Title sub={t('auth.signUpSub')}>{t('auth.createFree')}</Title>
         <Card>
           <Field label={t('auth.name')} placeholder={t('ph.auth.name')} icon={icons.person} autoComplete="name" textContentType="name" value={form.name} onChangeText={set('name')} error={errors.name} />
@@ -51,13 +60,11 @@ export default function SignUp() {
             hint={emailRequired ? t('auth.emailCodeHint') : undefined} />
           <Field label={t('auth.newPassword')} placeholder={t('ph.auth.newPassword')} icon={icons.key} secureTextEntry autoComplete="new-password" textContentType="newPassword"
             hint={t('auth.passwordHint')} value={form.password} onChangeText={set('password')} error={errors.password} />
-          <ErrorText>{error}</ErrorText>
           <Button title={t('common.continue')} onPress={submit} busy={busy} size="lg" />
         </Card>
         <Banner tone="info">{t('auth.freeIncludes')}</Banner>
         <Small className="text-center">{t('auth.haveAccount')}</Small>
         <Button title={t('common.signIn')} variant="secondary" onPress={() => router.back()} />
-      </Screen>
-    </KeyboardAvoidingView>
+    </Screen>
   );
 }

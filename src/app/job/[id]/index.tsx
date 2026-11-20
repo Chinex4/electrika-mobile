@@ -1,4 +1,6 @@
 import { Image } from 'expo-image';
+
+import { remoteImage } from '@/api/client';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -194,7 +196,7 @@ export default function JobScreen() {
         <>
           <SectionLabel>{t('job.photos')}</SectionLabel>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-            {j.photos.map((p) => (p.url ? <Image key={p.id} source={p.url} style={{ width: 120, height: 120, borderRadius: 14 }} contentFit="cover" /> : null))}
+            {j.photos.map((p) => (p.url ? <Image key={p.id} source={remoteImage(p.url)} style={{ width: 120, height: 120, borderRadius: 14 }} contentFit="cover" /> : null))}
           </ScrollView>
         </>
       ) : null}

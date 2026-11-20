@@ -9,7 +9,9 @@ import * as WebBrowser from 'expo-web-browser';
 export type PayResult = 'paid' | 'pending' | 'failed' | 'cancelled';
 
 export async function openCheckout(checkoutUrl: string): Promise<PayResult> {
-  const res = await WebBrowser.openAuthSessionAsync(checkoutUrl, 'electrika://payments/done');
+  // A private session: iOS then skips its "wants to use … to Sign In" prompt,
+  // which made no sense before a payment, and nothing is kept between payments.
+  const res = await WebBrowser.openAuthSessionAsync(checkoutUrl, 'electrika://payments/done', { preferEphemeralSession: true });
   if (res.type !== 'success') return 'cancelled';
   const result = Linking.parse(res.url).queryParams?.result;
   return result === 'paid' || result === 'pending' || result === 'failed' ? result : 'pending';

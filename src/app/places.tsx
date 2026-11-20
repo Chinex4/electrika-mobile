@@ -5,6 +5,8 @@ import { View } from 'react-native';
 import { SelectField } from '@/components/SelectField';
 import { Between, brandColors, Button, Card, Empty, ErrorText, Failed, Field, Heading, Icon, IconButton, icons, Loading, Pill, Screen, Sheet, Small } from '@/components/ui';
 import { useT } from '@/i18n';
+import { clearError, rules, useValidate } from '@/lib/validate';
+import { notify } from '@/lib/toast';
 import { useConfig } from '@/lib/config';
 import { locateMe } from '@/lib/locate';
 import { openMaps } from '@/lib/pay';
@@ -44,6 +46,7 @@ export default function Places() {
 
 function PlaceSheet({ place, onClose }: { place: Site | 'new' | null; onClose: () => void }) {
   const t = useT();
+  const check = useValidate();
   const config = useConfig();
   const { run, busy } = useAction();
   const isNew = place === 'new';
@@ -56,8 +59,10 @@ function PlaceSheet({ place, onClose }: { place: Site | 'new' | null; onClose: (
   const [pin, setPin] = useDraft<{ lat: number; lng: number } | null>(existing && existing.lat != null && existing.lng != null ? { lat: existing.lat, lng: existing.lng } : null, key);
   const [locating, setLocating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
-  const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: keyof typeof form) => (v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    clearError(setErrors, k);
+  };
 
   async function here() {
     setLocating(true);
@@ -66,7 +71,7 @@ function PlaceSheet({ place, onClose }: { place: Site | 'new' | null; onClose: (
       setPin({ lat: l.lat, lng: l.lng });
       if (!form.address && l.address) set('address')(l.address);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      notify.error(e instanceof Error ? e.message : String(e));
     } finally {
       setLocating(false);
     }
@@ -74,7 +79,9 @@ function PlaceSheet({ place, onClose }: { place: Site | 'new' | null; onClose: (
 
   async function save() {
     setErrors({});
-    setError('');
+    const found = check(form, { name: [rules.required], address: [rules.required], area: [rules.required] });
+    setErrors(found);
+    if (Object.keys(found).length) return notify.error(t('v.fixFields'));
     try {
       await run(isNew ? '/customer/places/' : `/customer/places/${(place as Site).id}/`, {
         method: isNew ? 'POST' : 'PATCH',
@@ -86,7 +93,7 @@ function PlaceSheet({ place, onClose }: { place: Site | 'new' | null; onClose: (
       onClose();
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error(Object.keys(fieldErrors(e)).length ? t('v.fixFields') : (e as ApiFailure).message);
     }
   }
 
@@ -108,7 +115,6 @@ function PlaceSheet({ place, onClose }: { place: Site | 'new' | null; onClose: (
         </View>
         {errors.pin ? <ErrorText>{errors.pin}</ErrorText> : null}
       </Card>
-      <ErrorText>{Object.keys(errors).length ? '' : error}</ErrorText>
     </Sheet>
   );
 }

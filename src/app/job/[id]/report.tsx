@@ -32,15 +32,16 @@ export default function ReportScreen() {
   const [notes, setNotes] = useState(j?.sent_back?.technician_notes ?? '');
   const [firstTime, setFirstTime] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [error, setError] = useState('');
 
   const setFinding = (i: number, patch: Partial<Finding>) => setFindings((f) => f.map((x, n) => (n === i ? { ...x, ...patch } : x)));
 
   async function send() {
-    setError('');
     setErrors({});
     const filled = findings.filter((f) => f.text.trim());
-    if (!filled.length && !notes.trim()) return setError(t('report.needSomething'));
+    if (!filled.length && !notes.trim()) {
+      setErrors({ technician_notes: t('report.needSomething') });
+      return notify.error(t('report.needSomething'));
+    }
     const form = new FormData();
     form.append('technician_notes', notes);
     form.append('first_time_fix', firstTime ? 'true' : 'false');
@@ -59,7 +60,7 @@ export default function ReportScreen() {
       router.back();
     } catch (e) {
       setErrors(fieldErrors(e));
-      setError((e as ApiFailure).message);
+      notify.error((e as ApiFailure).message);
     }
   }
 
@@ -114,7 +115,6 @@ export default function ReportScreen() {
         <Icon name={icons.info} size={14} color={brandColors.faint} />
         <Small className="flex-1">{t('report.reviewNote')}</Small>
       </View>
-      <ErrorText>{error}</ErrorText>
     </Screen>
   );
 }
