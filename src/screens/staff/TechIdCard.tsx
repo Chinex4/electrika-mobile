@@ -1,9 +1,10 @@
 import { Pressable, Text, View } from 'react-native';
 
-import { Avatar, Between, brandColors, Card, cx, Heading, Icon, icons, Pill, Small, Stat, StatGrid } from '@/components/ui';
+import { Avatar, Between, Card, cx, Heading, Icon, icons, Pill, Small, Stat, StatGrid } from '@/components/ui';
 import { useT } from '@/i18n';
 import { useAction, useAppSelector, useResource } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
+import { useColors } from '@/theme';
 
 export type TechMe = {
   staff_id: string;
@@ -20,6 +21,7 @@ export type TechMe = {
 
 /** An engineer's ID card, working days and this month's figures. */
 export function TechIdCard() {
+  const colors = useColors();
   const t = useT();
   const user = useAppSelector(selectUser);
   const q = useResource<TechMe>('/me/technician/');
@@ -43,7 +45,7 @@ export function TechIdCard() {
           </View>
           {d.verified ? (
             <View className="flex-row items-center gap-1">
-              <Icon name={icons.seal} size={16} color={brandColors.leaf} />
+              <Icon name={icons.seal} size={16} color={colors.leaf} />
               <Pill label={d.verification_label || t('tech.verified')} tone="leaf" />
             </View>
           ) : (
@@ -65,7 +67,7 @@ export function TechIdCard() {
               accessibilityRole="checkbox"
               accessibilityState={{ checked: w.on }}
               onPress={() => toggleDay(w.day)}
-              className={cx('h-11 w-11 items-center justify-center rounded-full border-[1.5px]', w.on ? 'border-brand bg-brand' : 'border-line bg-white')}>
+              className={cx('h-11 w-11 items-center justify-center rounded-full border-[1.5px]', w.on ? 'border-accent bg-brand' : 'border-line bg-surface')}>
               <Text className={cx('text-xs font-bold', w.on ? 'text-white' : 'text-muted')}>{w.label.slice(0, 2)}</Text>
             </Pressable>
           ))}

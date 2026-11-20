@@ -13,7 +13,7 @@ import { NativeTabs } from 'expo-router/native-tabs';
 import type { AndroidSymbol, SFSymbol } from 'expo-symbols';
 
 import { useT } from '@/i18n';
-import { colors } from '@/theme/tokens';
+import { useColors } from '@/theme';
 
 import { FloatingTabBar } from './FloatingTabBar';
 import { HAS_LIQUID_GLASS } from './glass';
@@ -32,10 +32,11 @@ export type TabSpec = {
 
 export function RoleTabs({ tabs }: { tabs: TabSpec[] }) {
   const t = useT();
+  const theme = useColors();
 
   if (HAS_LIQUID_GLASS) {
     return (
-      <NativeTabs tintColor={colors.brand} minimizeBehavior="onScrollDown">
+      <NativeTabs tintColor={theme.brand} minimizeBehavior="onScrollDown">
         {tabs.map((tab) => (
           <NativeTabs.Trigger key={tab.name} name={tab.name}>
             <NativeTabs.Trigger.Label>{t(tab.label)}</NativeTabs.Trigger.Label>

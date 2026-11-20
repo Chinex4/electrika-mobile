@@ -188,7 +188,7 @@ export function AmToday() {
               <HeroStat value={d.new_requests.length} label={t('office.newRequests')} />
             </HeroStats>
           </HeroCard>
-          {d.new_requests.length ? <SectionLabel right={<Text onPress={() => router.push('/am/requests')} className="text-sm font-semibold text-brand">{t('common.seeAll')}</Text>}>{t('office.newRequests')}</SectionLabel> : null}
+          {d.new_requests.length ? <SectionLabel right={<Text onPress={() => router.push('/am/requests')} className="text-sm font-semibold text-accent">{t('common.seeAll')}</Text>}>{t('office.newRequests')}</SectionLabel> : null}
           {d.new_requests.slice(0, 3).map((r) => (
             <RequestCard key={r.client.id} r={r} />
           ))}

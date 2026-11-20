@@ -1,13 +1,15 @@
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 
-import { Avatar, Between, brandColors, Card, Icon, icons, Pill, Small } from '@/components/ui';
+import { Avatar, Between, Card, Icon, icons, Pill, Small } from '@/components/ui';
 import { useT } from '@/i18n';
 import { jobTone, when } from '@/lib/format';
 import type { JobRow } from '@/types/api';
+import { useColors } from '@/theme';
 
 /** One job, as every dashboard lists it. Tapping opens the job page. */
 export function JobCard({ job, onPress, showClient = true }: { job: JobRow; onPress?: () => void; showClient?: boolean }) {
+  const colors = useColors();
   const t = useT();
   const emergency = job.type === 'EMERGENCY';
   const late = job.live_sla === 'BREACHED' || job.sla_state === 'BREACHED';
@@ -18,7 +20,7 @@ export function JobCard({ job, onPress, showClient = true }: { job: JobRow; onPr
         <View className="flex-1 flex-row items-center gap-2">
           {emergency ? (
             <View className="h-7 w-7 items-center justify-center rounded-lg bg-alert">
-              <Icon name={icons.bolt} size={14} color={brandColors.white} />
+              <Icon name={icons.bolt} size={14} color={colors.white} />
             </View>
           ) : null}
           <Text className="flex-1 text-[16px] font-semibold text-navy" numberOfLines={1}>
@@ -32,7 +34,7 @@ export function JobCard({ job, onPress, showClient = true }: { job: JobRow; onPr
       </Small>
       <Between>
         <View className="flex-row items-center gap-1.5">
-          <Icon name={icons.clock} size={13} color={late ? brandColors.alert : brandColors.faint} />
+          <Icon name={icons.clock} size={13} color={late ? colors.alert : colors.faint} />
           <Text className={late ? 'text-[13px] font-semibold text-alert-ink' : 'text-[13px] text-muted'}>
             {job.countdown || when(job.sla_deadline ?? job.scheduled_for ?? job.raised_at)}
           </Text>

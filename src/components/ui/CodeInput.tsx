@@ -9,9 +9,9 @@
 import { forwardRef, useContext, useImperativeHandle, useRef, useState, type ComponentRef } from 'react';
 import { Platform, Pressable, Text, TextInput, View } from 'react-native';
 
-import { brandColors } from './Icon';
 import { RevealContext } from './keyboard';
 import { cx } from './layout';
+import { useColors } from '@/theme';
 
 export type CodeInputRef = { focus: () => void; clear: () => void };
 
@@ -29,6 +29,7 @@ export const CodeInput = forwardRef<
     disabled?: boolean;
   }
 >(function CodeInput({ value, onChange, onComplete, length = 6, label, error, autoFocus, disabled }, ref) {
+  const colors = useColors();
   const input = useRef<ComponentRef<typeof TextInput>>(null);
   const [focused, setFocused] = useState(false);
   const reveal = useContext(RevealContext);
@@ -56,10 +57,10 @@ export const CodeInput = forwardRef<
                 key={i}
                 testID={`code-box-${i}`}
                 className={cx(
-                  'h-[58px] flex-1 items-center justify-center rounded-2xl border-[1.5px] bg-white',
-                  error ? 'border-alert' : current ? 'border-brand' : filled ? 'border-[#9DB6D6]' : 'border-edge',
+                  'h-[58px] flex-1 items-center justify-center rounded-2xl border-[1.5px] bg-surface',
+                  error ? 'border-alert' : current ? 'border-accent' : filled ? 'border-accent/50' : 'border-edge',
                 )}>
-                <Text style={{ fontSize: 24, fontWeight: '700', color: brandColors.navy }}>{digits[i] ?? ''}</Text>
+                <Text style={{ fontSize: 24, fontWeight: '700', color: colors.navy }}>{digits[i] ?? ''}</Text>
                 {current && !filled ? <View className="absolute h-7 w-[2px] rounded-full bg-brand" /> : null}
               </View>
             );

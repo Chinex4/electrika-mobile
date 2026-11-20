@@ -12,7 +12,7 @@ const CHOICES: { lang: Lang; label: string }[] = [
 export function LanguageSwitch() {
   const { lang, setLang } = useLanguage();
   return (
-    <View className="flex-row self-center rounded-full bg-[#E8EDF4] p-1" accessibilityRole="radiogroup">
+    <View className="flex-row self-center rounded-full bg-track p-1" accessibilityRole="radiogroup">
       {CHOICES.map((c) => {
         const on = c.lang === lang;
         return (
@@ -22,8 +22,8 @@ export function LanguageSwitch() {
             accessibilityState={{ checked: on }}
             onPress={() => on || setLang(c.lang)}
             style={on ? raised : undefined}
-            className={cx('rounded-full px-5 py-2', on && 'bg-white')}>
-            <Text className={cx('text-sm font-semibold', on ? 'text-brand' : 'text-muted')}>{c.label}</Text>
+            className={cx('rounded-full px-5 py-2', on && 'bg-surface')}>
+            <Text className={cx('text-sm font-semibold', on ? 'text-accent' : 'text-muted')}>{c.label}</Text>
           </Pressable>
         );
       })}

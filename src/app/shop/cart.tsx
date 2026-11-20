@@ -3,15 +3,17 @@ import { router, Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { Banner, Between, brandColors, Button, Card, Empty, Icon, icons, Screen, Small, Spinner, Stepper } from '@/components/ui';
+import { Banner, Between, Button, Card, Empty, Icon, icons, Screen, Small, Spinner, Stepper } from '@/components/ui';
 import { useT } from '@/i18n';
 import { naira } from '@/lib/format';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectCartItems, selectPricedCart } from '@/store/selectors';
 import { priceCart, removeFromCart, setQty } from '@/store/slices/cart';
+import { useColors } from '@/theme';
 
 /** The cart, priced by the server every time it changes. */
 export default function Cart() {
+  const colors = useColors();
   const t = useT();
   const dispatch = useAppDispatch();
   const items = useAppSelector(selectCartItems);
@@ -55,7 +57,7 @@ export default function Cart() {
               <Small>{naira(lineTotal(i.product_id) ?? (i.price ? Number(i.price) * i.qty : null))}</Small>
             </View>
             <Pressable accessibilityLabel={t('common.remove')} onPress={() => dispatch(removeFromCart(i.product_id))} className="h-8 w-8 items-center justify-center">
-              <Icon name={icons.trash} size={16} color={brandColors.faint} />
+              <Icon name={icons.trash} size={16} color={colors.faint} />
             </Pressable>
           </View>
           <View className="items-end">

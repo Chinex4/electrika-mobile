@@ -6,8 +6,9 @@ import { apiLanguage } from '@/api/client';
 import { translate, useT } from '@/i18n';
 import { notify } from '@/lib/toast';
 
-import { brandColors, Icon, icons } from './Icon';
+import { Icon, icons } from './Icon';
 import { cx } from './layout';
+import { useColors } from '@/theme';
 
 /** Take a photo or choose one. Returns the local uri, or null if cancelled. */
 export async function pickPhoto(source: 'camera' | 'library' = 'library', square = false): Promise<string | null> {
@@ -40,6 +41,7 @@ export const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
 /** A row of photos with "Take" and "Choose" tiles; used for job reports and problem photos. */
 export function PhotoStrip({ photos, onChange, max = 6, label }: { photos: string[]; onChange: (uris: string[]) => void; max?: number; label?: string }) {
+  const colors = useColors();
   const t = useT();
   const add = async (source: 'camera' | 'library') => {
     const uri = await pickPhoto(source);
@@ -56,7 +58,7 @@ export function PhotoStrip({ photos, onChange, max = 6, label }: { photos: strin
               accessibilityLabel={t('common.remove')}
               onPress={() => onChange(photos.filter((p) => p !== uri))}
               className="absolute right-1 top-1 h-6 w-6 items-center justify-center rounded-full bg-black/60">
-              <Icon name={icons.close} size={10} color={brandColors.white} />
+              <Icon name={icons.close} size={10} color={colors.white} />
             </Pressable>
           </View>
         ))}
@@ -76,9 +78,9 @@ function Tile({ label, onPress, icon }: { label: string; onPress: () => void; ic
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      className={cx('h-[88px] w-[88px] items-center justify-center gap-1 rounded-2xl border-[1.5px] border-dashed border-edge bg-white active:opacity-70')}>
+      className={cx('h-[88px] w-[88px] items-center justify-center gap-1 rounded-2xl border-[1.5px] border-dashed border-edge bg-surface active:opacity-70')}>
       <Icon name={icons[icon]} size={20} />
-      <Text className="text-center text-[11px] font-semibold text-brand">{label}</Text>
+      <Text className="text-center text-[11px] font-semibold text-accent">{label}</Text>
     </Pressable>
   );
 }

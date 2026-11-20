@@ -13,6 +13,7 @@
  */
 import { combineReducers, configureStore, createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit';
 import * as SecureStore from 'expo-secure-store';
+import { Appearance } from 'react-native';
 
 import { setApiLanguage, tokenStore } from '@/api/client';
 
@@ -21,7 +22,7 @@ import consoleLock from './slices/console';
 import journey from './slices/journey';
 import resources, { clearResources, fetchResource, performAction } from './slices/resources';
 import session, { signedOutByServer, signOut } from './slices/session';
-import settings, { changeLanguage, LANG_KEY, languageFromAccount, loadLanguage } from './slices/settings';
+import settings, { changeLanguage, LANG_KEY, languageFromAccount, loadLanguage, loadTheme, setTheme, THEME_KEY, type ThemePref } from './slices/settings';
 
 export const rootReducer = combineReducers({ session, settings, resources, cart, journey, console: consoleLock });
 export type RootState = ReturnType<typeof rootReducer>;
@@ -35,6 +36,17 @@ export function makeStore(preloaded?: Partial<RootState>) {
       const lang = (api.getState() as RootState).settings.lang;
       setApiLanguage(lang);
       if (languageFromAccount.match(action)) SecureStore.setItemAsync(LANG_KEY, lang).catch(() => undefined);
+    },
+  });
+
+  // The theme: saved on the phone, and handed to the system so the keyboard,
+  // alerts and menus match the app ('auto' follows the phone's own setting).
+  listener.startListening({
+    matcher: isAnyOf(loadTheme.fulfilled, setTheme),
+    effect: (action, api) => {
+      const theme = (api.getState() as RootState).settings.theme;
+      applyTheme(theme);
+      if (setTheme.match(action)) SecureStore.setItemAsync(THEME_KEY, theme).catch(() => undefined);
     },
   });
 
@@ -77,9 +89,18 @@ export function makeStore(preloaded?: Partial<RootState>) {
 
 export const store = makeStore();
 
-/** Start-up: the saved language and cart. The session is restored by the root layout. */
+export function applyTheme(theme: ThemePref) {
+  try {
+    Appearance.setColorScheme(theme === 'system' ? 'unspecified' : theme);
+  } catch {
+    // not available (web, tests): the app still themes itself
+  }
+}
+
+/** Start-up: the saved language, theme and cart. The session is restored by the root layout. */
 export function bootStore(s: AppStore = store) {
   s.dispatch(loadLanguage());
+  s.dispatch(loadTheme());
   s.dispatch(loadCart());
 }
 

@@ -58,7 +58,7 @@ export default function ProductScreen() {
           <View className="gap-1.5">
             {p.badge_label ? <Pill label={p.badge_label} /> : null}
             <Text className="text-[24px] font-bold text-navy">{p.name}</Text>
-            <Text className="text-[20px] font-bold text-brand">{priceLabel(p, t)}</Text>
+            <Text className="text-[20px] font-bold text-accent">{priceLabel(p, t)}</Text>
             {p.summary ? <Body>{p.summary}</Body> : null}
           </View>
           {!p.in_stock ? <Banner tone="amber">{t('shop.outOfStockSub')}</Banner> : null}

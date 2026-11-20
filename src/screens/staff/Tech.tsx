@@ -2,18 +2,20 @@ import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 
 import { JobCard } from '@/components/JobCard';
-import { Banner, brandColors, Button, Card, Empty, Failed, HeroCard, HeroStat, HeroStats, Icon, icons, Loading, Pill, Screen, SectionLabel, Small, Title, Toggle } from '@/components/ui';
+import { Banner, Button, Card, Empty, Failed, HeroCard, HeroStat, HeroStats, Icon, icons, Loading, Pill, Screen, SectionLabel, Small, Title, Toggle } from '@/components/ui';
 import { useT } from '@/i18n';
 import { notify } from '@/lib/toast';
 import { useAppDispatch, useAppSelector, useResource } from '@/store/hooks';
 import { selectJourney, selectUser } from '@/store/selectors';
 import { setDuty } from '@/store/slices/journey';
 import type { ApiFailure, JobRow } from '@/types/api';
+import { useColors } from '@/theme';
 
 type MyJobs = { on_duty: boolean; working_today: boolean; location_consent: boolean; jobs: JobRow[]; done_today: JobRow[] };
 
 /** The engineer's day: duty switch, the next job up top, then the rest. */
 export function TechJobs() {
+  const colors = useColors();
   const t = useT();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
@@ -45,7 +47,7 @@ export function TechJobs() {
           {journey.jobId ? (
             <Card tone="brand" onPress={() => router.push(`/job/${journey.jobId}`)}>
               <View className="flex-row items-center gap-3">
-                <Icon name={icons.location} size={18} color={brandColors.brand} />
+                <Icon name={icons.location} size={18} color={colors.brand} />
                 <View className="flex-1">
                   <Text className="text-[15px] font-semibold text-navy">{t('tech.sharing')}</Text>
                   <Small>{journey.sharing === 'foreground' ? t('tech.sharingOpen') : t('tech.sharingBackground')}</Small>
@@ -77,12 +79,13 @@ export function TechJobs() {
 
 /** The next job, big: where, when, and one tap to open it. */
 function Pressed({ job }: { job: JobRow }) {
+  const colors = useColors();
   const t = useT();
   const emergency = job.type === 'EMERGENCY';
   return (
     <HeroCard tone={emergency ? 'alert' : 'brand'}>
       <View className="flex-row items-center gap-2">
-        <Icon name={emergency ? icons.bolt : icons.wrench} size={16} color={brandColors.white} />
+        <Icon name={emergency ? icons.bolt : icons.wrench} size={16} color={colors.white} />
         <Text className="text-[13px] font-semibold text-white/90">{job.type_label}</Text>
       </View>
       <Text className="text-[24px] font-bold text-white" numberOfLines={2}>

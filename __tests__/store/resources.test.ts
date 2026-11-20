@@ -57,7 +57,7 @@ describe('server data in the store', () => {
 
   it('sends the chosen language with every request', async () => {
     const { calls } = mockFetch({ '/plans/': { body: { results: [] } } });
-    const store = freshStore({ settings: { lang: 'ig', loaded: true } });
+    const store = freshStore({ settings: { lang: 'ig', loaded: true, theme: 'system' } });
     await store.dispatch(fetchResource({ path: '/plans/', auth: false }));
     expect((calls[0].init?.headers as Record<string, string>)['Accept-Language']).toBe('ig');
   });

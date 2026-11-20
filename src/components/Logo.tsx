@@ -6,6 +6,7 @@ import { Text, View } from 'react-native';
 import Svg, { Line, Path } from 'react-native-svg';
 
 import { brandColors } from '@/components/ui/Icon';
+import { useColors } from '@/theme';
 
 export const MARK_VIEWBOX = '12 12 106 96';
 export const MARK_ARC = 'M89.5 39.4 A36 36 0 1 0 89.5 80.6';
@@ -43,9 +44,10 @@ export function LogoTile({ size = 56 }: { size?: number }) {
 
 /** "ElectriKa", with "Ka" picked out as on the website. */
 export function Wordmark({ size = 28, light = false }: { size?: number; light?: boolean }) {
+  const colors = useColors();
   return (
     <Text style={{ fontSize: size, lineHeight: size * 1.15 }} className={light ? 'font-bold tracking-tight text-white' : 'font-bold tracking-tight text-navy'}>
-      Electri<Text style={{ color: light ? '#FF8A8E' : brandColors.alert }}>Ka</Text>
+      Electri<Text style={{ color: light ? '#FF8A8E' : colors.alert }}>Ka</Text>
     </Text>
   );
 }

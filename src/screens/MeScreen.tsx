@@ -20,6 +20,7 @@ import {
   Row,
   Screen,
   SectionLabel,
+  Segmented,
   Sheet,
   Small,
 } from '@/components/ui';
@@ -30,7 +31,9 @@ import { notify } from '@/lib/toast';
 import { useDraft } from '@/lib/useDraft';
 import { clearError, rules, useValidate } from '@/lib/validate';
 import { pushIsOn, registerForPush } from '@/notifications/push';
-import { fieldErrors, useAction } from '@/store/hooks';
+import { fieldErrors, useAction, useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectThemePref } from '@/store/selectors';
+import { setTheme } from '@/store/slices/settings';
 import type { ApiFailure } from '@/types/api';
 
 import { TechIdCard } from './staff/TechIdCard';
@@ -42,6 +45,8 @@ export function MeScreen({ children }: { children?: ReactNode }) {
   const config = useConfig();
   const support = config.data?.support_phone ?? FALLBACK_SUPPORT_PHONE;
   const [push, setPush] = useState<boolean | null>(null);
+  const dispatch = useAppDispatch();
+  const themePref = useAppSelector(selectThemePref);
   const [sheet, setSheet] = useState<null | 'details' | 'password' | 'photo' | 'signout'>(null);
 
   useEffect(() => {
@@ -116,6 +121,18 @@ export function MeScreen({ children }: { children?: ReactNode }) {
       <View className="items-start">
         <LanguageSwitch />
       </View>
+
+      <SectionLabel>{t('me.appearance')}</SectionLabel>
+      <Segmented
+        value={themePref}
+        onChange={(v) => dispatch(setTheme(v))}
+        options={[
+          { key: 'system', label: t('theme.system') },
+          { key: 'light', label: t('theme.light') },
+          { key: 'dark', label: t('theme.dark') },
+        ]}
+      />
+      <Small className="px-1">{t('me.appearanceSub')}</Small>
 
       <SectionLabel>{t('me.help')}</SectionLabel>
       <ListGroup>

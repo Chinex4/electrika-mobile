@@ -7,7 +7,6 @@ import {
   Avatar,
   Banner,
   Body,
-  brandColors,
   Button,
   Card,
   Failed,
@@ -28,6 +27,7 @@ import { call } from '@/lib/pay';
 import { useAppSelector, useResource } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import type { Job, Person, Site } from '@/types/api';
+import { useColors } from '@/theme';
 
 export type CustomerHomeData = {
   greeting: string;
@@ -51,6 +51,7 @@ export type CustomerHomeData = {
 
 /** A customer's home: help first, then their plan and what's coming up. */
 export function CustomerHome() {
+  const colors = useColors();
   const t = useT();
   const user = useAppSelector(selectUser);
   const q = useResource<CustomerHomeData>('/customer/home/', { poll: 60_000 });
@@ -68,7 +69,7 @@ export function CustomerHome() {
             {d?.name ?? user?.first_name}
           </Text>
         </View>
-        <IconButton icon={icons.bell} label={t('me.notifications')} variant="white" onPress={() => router.push('/me/notifications')} badge={d?.unread ? 1 : 0} />
+        <IconButton icon={icons.bell} label={t('me.notifications')} variant="surface" onPress={() => router.push('/me/notifications')} badge={d?.unread ? 1 : 0} />
       </View>
 
       {q.isLoading ? <Loading hero rows={2} /> : null}
@@ -78,13 +79,13 @@ export function CustomerHome() {
         <Card tone="brand" onPress={() => (d.live?.job_id ? router.push(`/track/${d.live.job_id}`) : undefined)}>
           <View className="flex-row items-center gap-3">
             <View className="h-10 w-10 items-center justify-center rounded-full bg-brand">
-              <Icon name={icons.play} size={18} color={brandColors.white} />
+              <Icon name={icons.play} size={18} color={colors.white} />
             </View>
             <View className="flex-1">
               <Text className="text-[16px] font-semibold text-navy">{d.live.title}</Text>
               <Small>{d.live.sub}</Small>
             </View>
-            <Icon name={icons.chevron} size={14} color={brandColors.brand} />
+            <Icon name={icons.chevron} size={14} color={colors.brand} />
           </View>
         </Card>
       ) : null}
@@ -94,20 +95,20 @@ export function CustomerHome() {
         onPress={() => router.push('/help/emergency')}
         className="flex-row items-center gap-4 rounded-3xl bg-alert p-5 active:opacity-90">
         <View className="h-12 w-12 items-center justify-center rounded-2xl bg-white/20">
-          <Icon name={icons.bolt} size={24} color={brandColors.white} />
+          <Icon name={icons.bolt} size={24} color={colors.white} />
         </View>
         <View className="flex-1">
           <Text className="text-[19px] font-bold text-white">{t('home.emergency')}</Text>
           <Text className="text-sm text-white/85">{t('home.emergencySub')}</Text>
         </View>
-        <Icon name={icons.chevron} size={16} color={brandColors.white} />
+        <Icon name={icons.chevron} size={16} color={colors.white} />
       </Pressable>
 
       {d ? (
         d.on_plan && d.plan ? (
           <HeroCard>
             <View className="flex-row items-center gap-2">
-              <Icon name={icons.seal} size={16} color={brandColors.white} />
+              <Icon name={icons.seal} size={16} color={colors.white} />
               <Text className="text-[13px] font-semibold text-white/85">{t('home.onPlan')}</Text>
             </View>
             <Text className="text-[26px] font-extrabold text-white">{d.plan.tier_label}</Text>

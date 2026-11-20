@@ -4,7 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { SelectField } from '@/components/SelectField';
 import { StaySafe } from '@/components/StaySafe';
-import { Banner, brandColors, Button, Card, Choices, cx, Field, Heading, Icon, icons, Screen, Small } from '@/components/ui';
+import { Banner, Button, Card, Choices, cx, Field, Heading, Icon, icons, Screen, Small } from '@/components/ui';
 import { useT } from '@/i18n';
 import { notify } from '@/lib/toast';
 import { clearError, rules, useValidate } from '@/lib/validate';
@@ -14,6 +14,7 @@ import { call } from '@/lib/pay';
 import { fieldErrors, useAction, useAppSelector, useResource } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import type { ApiFailure, CodeCheck, HelpRequest, Job, Site } from '@/types/api';
+import { useColors } from '@/theme';
 
 type PlanSites = { on_plan: boolean; response_hours?: number; sites: Site[] };
 type Reply = { request?: HelpRequest; check?: CodeCheck; plan_job?: Job; response_hours?: number };
@@ -24,6 +25,7 @@ type Reply = { request?: HelpRequest; check?: CodeCheck; plan_job?: Job; respons
  * filling in the address from the phone's GPS. Guests confirm a code first.
  */
 export default function Emergency() {
+  const colors = useColors();
   const t = useT();
   const user = useAppSelector(selectUser);
   const config = useConfig();
@@ -128,8 +130,8 @@ export default function Emergency() {
           {(plan.data?.sites ?? []).map((s) => {
             const on = (site ?? plan.data?.sites[0]?.id) === s.id;
             return (
-              <Pressable key={s.id} onPress={() => setSite(s.id)} className={cx('flex-row items-center gap-3 rounded-2xl border-[1.5px] p-3.5', on ? 'border-brand bg-haze' : 'border-line bg-white')}>
-                <Icon name={icons.pin} size={18} color={on ? brandColors.brand : brandColors.muted} />
+              <Pressable key={s.id} onPress={() => setSite(s.id)} className={cx('flex-row items-center gap-3 rounded-2xl border-[1.5px] p-3.5', on ? 'border-accent bg-haze' : 'border-line bg-surface')}>
+                <Icon name={icons.pin} size={18} color={on ? colors.brand : colors.muted} />
                 <View className="flex-1">
                   <Text className="text-[15px] font-semibold text-navy">{s.name}</Text>
                   <Small>{s.address_line}</Small>

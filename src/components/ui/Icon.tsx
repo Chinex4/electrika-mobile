@@ -1,8 +1,14 @@
 import { SymbolView, type AndroidSymbol, type SFSymbol } from 'expo-symbols';
 
+import { useColors } from '@/theme';
+
 /** SF Symbols on iOS, Material Symbols on Android. */
 export type IconName = { sf: SFSymbol; md: AndroidSymbol };
 
+/**
+ * The light theme's colours, fixed. Screens use useColors() (src/theme),
+ * which follows light or dark; this stays for things outside any screen.
+ */
 export const brandColors = {
   brand: '#0051A2',
   navy: '#1D3557',
@@ -18,8 +24,9 @@ export const brandColors = {
   page: '#F6F8FB',
 } as const;
 
-export function Icon({ name, size = 20, color = brandColors.brand }: { name: IconName; size?: number; color?: string }) {
-  return <SymbolView name={{ ios: name.sf, android: name.md }} size={size} tintColor={color} />;
+export function Icon({ name, size = 20, color }: { name: IconName; size?: number; color?: string }) {
+  const colors = useColors();
+  return <SymbolView name={{ ios: name.sf, android: name.md }} size={size} tintColor={color ?? colors.brand} />;
 }
 
 /** Icons used in more than one place. */

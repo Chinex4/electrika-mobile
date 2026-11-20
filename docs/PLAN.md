@@ -117,6 +117,18 @@ Background location while "on my way" needs the `expo-location` background permi
   accepts it), and a new file name for each new photo.
 - Development: EXPO_PUBLIC_API_URL points the app at a local server.
 
+## Dark mode, 20 Nov 2026
+
+- Light, Dark or System (the default) under Appearance on every role's
+  Account page; saved on the phone and handed to iOS/Android so keyboards,
+  alerts and menus match.
+- Colours live in src/theme/palette.js (light and dark). Tailwind colour
+  classes read them as CSS variables (ThemeRoot sets them); code reads them
+  with useColors(). Brand fills (blue, navy, red buttons and hero cards, the
+  sign-in band, the launch animation) stay the same in both.
+- Use bg-surface for cards (not bg-white), text-accent for blue text and
+  links, bg-brand for blue fills. __tests__/theme.test.ts checks contrast.
+
 ## Rules for building
 
 - Read `AGENTS.md`. Check the SDK 58 docs before using any Expo API.

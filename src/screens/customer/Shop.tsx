@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { brandColors, Choices, cx, Empty, Failed, Field, Icon, IconButton, icons, Loading, Pill, Screen, Title } from '@/components/ui';
+import { Choices, cx, Empty, Failed, Field, Icon, IconButton, icons, Loading, Pill, Screen, Title } from '@/components/ui';
 import { useT } from '@/i18n';
 import { naira } from '@/lib/format';
 import { notify } from '@/lib/toast';
@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector, useResource } from '@/store/hooks';
 import { selectCartCount, selectCartQty } from '@/store/selectors';
 import { addToCart } from '@/store/slices/cart';
 import type { Product } from '@/types/api';
+import { useColors } from '@/theme';
 
 type Catalogue = { categories: { slug: string; name: string }[]; results: Product[] };
 
@@ -46,7 +47,7 @@ export function ShopScreen() {
     <Screen tabbed refreshing={q.isRefetching} onRefresh={q.refetch}>
       <Title
         sub={t('shop.sub')}
-        right={<IconButton icon={icons.cart} label={t('shop.cart')} variant="white" badge={count} onPress={() => router.push('/shop/cart')} />}>
+        right={<IconButton icon={icons.cart} label={t('shop.cart')} variant="surface" badge={count} onPress={() => router.push('/shop/cart')} />}>
         {t('tab.shop')}
       </Title>
       <Field label={t('common.search')} icon={icons.search} value={search} onChangeText={setSearch} placeholder={t('shop.searchHint')} returnKeyType="search" />
@@ -62,6 +63,7 @@ export function ShopScreen() {
 }
 
 function ProductTile({ p }: { p: Product }) {
+  const colors = useColors();
   const t = useT();
   const dispatch = useAppDispatch();
   const inCart = useAppSelector(selectCartQty(p.id));
@@ -70,7 +72,7 @@ function ProductTile({ p }: { p: Product }) {
     <Pressable
       accessibilityRole="button"
       onPress={() => router.push(`/shop/${p.slug}`)}
-      className="w-[48.5%] overflow-hidden rounded-2xl border border-line bg-white active:opacity-90">
+      className="w-[48.5%] overflow-hidden rounded-2xl border border-line bg-surface active:opacity-90">
       <View className="aspect-square w-full bg-mist">
         {p.image_url ? <Image source={p.image_url} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={150} /> : null}
         {p.badge_label ? (
@@ -84,7 +86,7 @@ function ProductTile({ p }: { p: Product }) {
           {p.name}
         </Text>
         <View className="flex-row items-center justify-between gap-1">
-          <Text className={cx('flex-1 text-sm font-bold', p.quote_only || p.ask_price ? 'text-muted' : 'text-brand')} numberOfLines={1}>
+          <Text className={cx('flex-1 text-sm font-bold', p.quote_only || p.ask_price ? 'text-muted' : 'text-accent')} numberOfLines={1}>
             {priceLabel(p, t)}
           </Text>
           {canAdd ? (
@@ -95,7 +97,7 @@ function ProductTile({ p }: { p: Product }) {
                 notify.success(t('shop.added', { name: p.name }));
               }}
               className={cx('h-8 w-8 items-center justify-center rounded-full', inCart ? 'bg-leaf' : 'bg-brand')}>
-              <Icon name={inCart ? { sf: 'checkmark', md: 'check' } : icons.plus} size={14} color={brandColors.white} />
+              <Icon name={inCart ? { sf: 'checkmark', md: 'check' } : icons.plus} size={14} color={colors.white} />
             </Pressable>
           ) : null}
         </View>

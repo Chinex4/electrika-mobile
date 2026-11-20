@@ -806,4 +806,9 @@ export const screensEn = {
   'me.photoFailed': "Your photo didn't upload",
   'me.photoTooBig': "That photo is over 5 MB. Please choose a smaller one.",
   'v.fixFields': "Please check the highlighted fields.",
+  'me.appearance': "Appearance",
+  'me.appearanceSub': "System follows your phone’s own light or dark setting.",
+  'theme.system': "System",
+  'theme.light': "Light",
+  'theme.dark': "Dark",
 } as const;

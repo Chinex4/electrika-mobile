@@ -3,17 +3,19 @@ import { router, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Switch, Text, View } from 'react-native';
 
-import { brandColors, Card, Choices, Empty, Failed, Field, IconButton, icons, Loading, Pill, Screen, Small } from '@/components/ui';
+import { Card, Choices, Empty, Failed, Field, IconButton, icons, Loading, Pill, Screen, Small } from '@/components/ui';
 import { useT } from '@/i18n';
 import { naira } from '@/lib/format';
 import { useAction, useResource } from '@/store/hooks';
 import type { Choice, Product } from '@/types/api';
+import { useColors } from '@/theme';
 
 export type StaffProduct = Product & { active: boolean; sort: number; specs_text: string };
 type ProductsList = { show: string; shows: Choice[]; categories: { id: number; name: string; n: number }[]; results: StaffProduct[] };
 
 /** The Shop's products, for the Program Manager and Account Managers: stock and visibility in one tap. */
 export default function Products() {
+  const colors = useColors();
   const t = useT();
   const [show, setShow] = useState('all');
   const [search, setSearch] = useState('');
@@ -51,11 +53,11 @@ export default function Products() {
           </View>
           <View className="flex-row items-center justify-between border-t border-line/70 pt-2">
             <View className="flex-row items-center gap-2">
-              <Switch value={p.in_stock} onValueChange={(v) => flip(p, 'in_stock', v)} trackColor={{ true: brandColors.leaf, false: brandColors.edge }} />
+              <Switch value={p.in_stock} onValueChange={(v) => flip(p, 'in_stock', v)} trackColor={{ true: colors.leaf, false: colors.edge }} />
               <Small>{t('products.inStock')}</Small>
             </View>
             <View className="flex-row items-center gap-2">
-              <Switch value={p.active} onValueChange={(v) => flip(p, 'active', v)} trackColor={{ true: brandColors.brand, false: brandColors.edge }} />
+              <Switch value={p.active} onValueChange={(v) => flip(p, 'active', v)} trackColor={{ true: colors.brand, false: colors.edge }} />
               <Small>{t('products.inShop')}</Small>
             </View>
           </View>

@@ -14,6 +14,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useT } from '@/i18n';
+import { useColors, useScheme } from '@/theme';
 import { colors, radius } from '@/theme/tokens';
 
 import type { TabSpec } from './RoleTabs';
@@ -22,6 +23,8 @@ export const FLOATING_BAR_HEIGHT = 68;
 
 export function FloatingTabBar({ state, emitter, navigateToTab, tabs }: BottomTabBarProps & { tabs: TabSpec[] }) {
   const t = useT();
+  const theme = useColors();
+  const dark = useScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const [width, setWidth] = useState(0);
   const count = state.routes.length;
@@ -38,14 +41,14 @@ export function FloatingTabBar({ state, emitter, navigateToTab, tabs }: BottomTa
     <View style={styles.row} onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}>
       {slot > 0 ? (
         <Animated.View style={[styles.pillTrack, pill]} pointerEvents="none">
-          <View style={styles.pill} />
+          <View style={[styles.pill, dark && styles.pillDark]} />
         </Animated.View>
       ) : null}
       {state.routes.map((route, index) => {
         const spec = tabs.find((tab) => tab.name === route.name);
         if (!spec) return null;
         const focused = state.index === index;
-        const tint = focused ? colors.brand : colors.muted;
+        const tint = focused ? theme.brand : theme.muted;
         const onPress = () => {
           const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
           if (!focused && !event.defaultPrevented) {
@@ -88,11 +91,11 @@ export function FloatingTabBar({ state, emitter, navigateToTab, tabs }: BottomTa
     <View pointerEvents="box-none" style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 12) }]}>
       <View style={styles.shadow}>
         {Platform.OS === 'ios' ? (
-          <BlurView intensity={85} tint="systemChromeMaterialLight" style={styles.bar}>
+          <BlurView intensity={85} tint={dark ? 'systemChromeMaterialDark' : 'systemChromeMaterialLight'} style={[styles.bar, dark && styles.barDark]}>
             {body}
           </BlurView>
         ) : (
-          <View style={[styles.bar, styles.solid]}>{body}</View>
+          <View style={[styles.bar, dark ? styles.solidDark : styles.solid]}>{body}</View>
         )}
       </View>
     </View>
@@ -117,6 +120,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(29,53,87,0.10)',
   },
   solid: { backgroundColor: 'rgba(255,255,255,0.98)' },
+  // Dark: the card colour, a lighter edge, and a lighter brand pill.
+  solidDark: { backgroundColor: 'rgba(19,28,46,0.98)', borderColor: 'rgba(125,180,255,0.14)' },
+  barDark: { borderColor: 'rgba(125,180,255,0.14)' },
+  pillDark: { backgroundColor: 'rgba(125,180,255,0.16)' },
   row: { flex: 1, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6 },
   pillTrack: { position: 'absolute', top: 7, bottom: 7, left: 6, alignItems: 'center' },
   pill: { flex: 1, alignSelf: 'stretch', marginHorizontal: 4, borderRadius: radius.lg, backgroundColor: 'rgba(0,81,162,0.10)' },

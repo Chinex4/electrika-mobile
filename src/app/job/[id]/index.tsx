@@ -10,7 +10,6 @@ import {
   Banner,
   Between,
   Body,
-  brandColors,
   Button,
   Card,
   Choices,
@@ -37,6 +36,7 @@ import { useAction, useAppDispatch, useAppSelector, useResource } from '@/store/
 import { selectJourney } from '@/store/selectors';
 import { arrive, consentShown, startJourney } from '@/store/slices/journey';
 import type { ApiFailure, Choice, Job } from '@/types/api';
+import { useColors } from '@/theme';
 
 type AssignOption = { id: number; name: string; label: string; note: string; free: boolean; selected: boolean; cluster_label: string };
 
@@ -65,6 +65,7 @@ const CLOSED = ['COMPLETED', 'CANCELLED'];
 
 /** A job, for whoever may see it, with what they may do on it. */
 export default function JobScreen() {
+  const colors = useColors();
   const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const jobId = Number(id);
@@ -136,7 +137,7 @@ export default function JobScreen() {
       <Card tone={emergency && !closed ? 'alert' : undefined}>
         <Between>
           <View className="flex-1 flex-row items-center gap-2">
-            {emergency ? <Icon name={icons.bolt} size={16} color={brandColors.alert} /> : null}
+            {emergency ? <Icon name={icons.bolt} size={16} color={colors.alert} /> : null}
             <Text className="flex-1 text-[22px] font-bold text-navy" numberOfLines={2}>
               {j.site?.name ?? j.client.name}
             </Text>
@@ -145,7 +146,7 @@ export default function JobScreen() {
         </Between>
         {j.countdown && !closed ? (
           <View className="flex-row items-center gap-1.5">
-            <Icon name={icons.clock} size={14} color={emergency ? brandColors.alert : brandColors.muted} />
+            <Icon name={icons.clock} size={14} color={emergency ? colors.alert : colors.muted} />
             <Text className={cx('text-[15px] font-semibold', emergency ? 'text-alert-ink' : 'text-ink')}>{j.countdown}</Text>
           </View>
         ) : null}
@@ -284,7 +285,7 @@ export default function JobScreen() {
                 // toast shown
               }
             }}
-            className={cx('flex-row items-center gap-3 rounded-2xl border-[1.5px] bg-white p-4 active:opacity-80', o.selected ? 'border-brand' : 'border-line')}>
+            className={cx('flex-row items-center gap-3 rounded-2xl border-[1.5px] bg-surface p-4 active:opacity-80', o.selected ? 'border-accent' : 'border-line')}>
             <View className={cx('h-2.5 w-2.5 rounded-full', o.free ? 'bg-leaf' : 'bg-edge')} />
             <View className="flex-1">
               <Text className="text-[15px] font-semibold text-navy">{o.name}</Text>

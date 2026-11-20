@@ -5,9 +5,11 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { FLOATING_BAR_HEIGHT } from '@/navigation/FloatingTabBar';
 import { HAS_LIQUID_GLASS } from '@/navigation/glass';
 
-import { brandColors, Icon, icons, type IconName } from './Icon';
+import { Icon, icons, type IconName } from './Icon';
 import { RevealContext, useKeyboardInset, useRevealingScroll, SCROLL_THROTTLE, type ViewRef } from './keyboard';
 import { useStatusBarStyle } from './statusBar';
+import { useColors } from '@/theme';
+import palette from '@/theme/palette';
 
 /**
  * The small lift under a selected pill (English | Igbo, a segmented control).
@@ -51,6 +53,7 @@ export function Screen({
   /** What's behind the status bar: 'dark' text on the light page. */
   statusBar?: 'light' | 'dark';
 }) {
+  const colors = useColors();
   useStatusBarStyle(statusBar);
   const insets = useSafeAreaInsets();
   const frame = useRef<ViewRef>(null);
@@ -75,7 +78,7 @@ export function Screen({
               contentInsetAdjustmentBehavior="automatic"
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="interactive"
-              refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={brandColors.brand} /> : undefined}>
+              refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.brand} /> : undefined}>
               {body}
             </ScrollView>
           </RevealContext.Provider>
@@ -83,7 +86,7 @@ export function Screen({
           body
         )}
         {footer ? (
-          <View className="border-t border-line bg-white px-4 pt-3" style={{ paddingBottom: keyboard ? 12 : Math.max(insets.bottom, 12) }}>
+          <View className="border-t border-line bg-surface px-4 pt-3" style={{ paddingBottom: keyboard ? 12 : Math.max(insets.bottom, 12) }}>
             {footer}
           </View>
         ) : null}
@@ -125,12 +128,12 @@ export function Card({
   tone?: 'alert' | 'amber' | 'leaf' | 'brand';
 }) {
   const toneClass = {
-    alert: 'border-alert-edge bg-[#FFF8F7]',
-    amber: 'border-amber-edge bg-[#FFFBF5]',
-    leaf: 'border-[#BFE3CD] bg-[#F6FBF8]',
-    brand: 'border-[#C7D9F0] bg-haze',
+    alert: 'border-alert-edge bg-alert-tint',
+    amber: 'border-amber-edge bg-amber-tint',
+    leaf: 'border-leaf-edge bg-leaf-tint',
+    brand: 'border-haze-edge bg-haze',
   }[tone ?? 'brand'];
-  const base = cx('gap-2 rounded-2xl border p-4', tone ? toneClass : 'border-line bg-white', className);
+  const base = cx('gap-2 rounded-2xl border p-4', tone ? toneClass : 'border-line bg-surface', className);
   if (!onPress) return <View className={base}>{children}</View>;
   return (
     <Pressable onPress={onPress} accessibilityRole="button" className="active:scale-[0.985] active:opacity-90">
@@ -141,11 +144,11 @@ export function Card({
 
 /**
  * The one hero card on a dashboard, in ElectriKa's own flat colours (the
- * website's bg-brand / bg-navy / bg-alert). No gradient, no glass and no
+ * website's bg-brand / bg-navy-fill / bg-alert). No gradient, no glass and no
  * tint over it: Liquid Glass and the old gradient both washed the blue out
  * to a greyish one, so it never matched the website.
  */
-export const HERO_TONES = { brand: brandColors.brand, alert: brandColors.alert, navy: brandColors.navy } as const;
+export const HERO_TONES = { brand: palette.fixed.brand, alert: palette.fixed.alert, navy: palette.fixed['navy-fill'] } as const;
 
 export function HeroCard({ children, tone = 'brand' }: { children: ReactNode; tone?: keyof typeof HERO_TONES }) {
   return (
@@ -172,15 +175,15 @@ export function HeroStats({ children }: { children: ReactNode }) {
 
 /** Rows grouped in one rounded card, like a settings list. */
 export function ListGroup({ children, className }: { children: ReactNode; className?: string }) {
-  return <View className={cx('overflow-hidden rounded-2xl border border-line bg-white', className)}>{children}</View>;
+  return <View className={cx('overflow-hidden rounded-2xl border border-line bg-surface', className)}>{children}</View>;
 }
 
 const ROW_TONE = {
-  brand: ['bg-haze', brandColors.brand],
-  alert: ['bg-alert-bg', brandColors.alertInk],
-  leaf: ['bg-leaf-bg', brandColors.leafInk],
-  amber: ['bg-amber-bg', brandColors.amberInk],
-  grey: ['bg-mist', brandColors.muted],
+  brand: ['bg-haze', 'brand'],
+  alert: ['bg-alert-bg', 'alertInk'],
+  leaf: ['bg-leaf-bg', 'leafInk'],
+  amber: ['bg-amber-bg', 'amberInk'],
+  grey: ['bg-mist', 'muted'],
 } as const;
 
 export function Row({
@@ -202,13 +205,15 @@ export function Row({
   last?: boolean;
   destructive?: boolean;
 }) {
-  const [bg, tint] = ROW_TONE[tone];
+  const colors = useColors();
+  const [bg, tintKey] = ROW_TONE[tone];
+  const tint = colors[tintKey];
   return (
     <Pressable
       onPress={onPress}
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      className={cx('flex-row items-center gap-3 bg-white px-4 py-3 active:bg-mist', !last && 'border-b border-line/70')}>
+      className={cx('flex-row items-center gap-3 bg-surface px-4 py-3 active:bg-mist', !last && 'border-b border-line/70')}>
       {icon ? (
         <View className={cx('h-9 w-9 items-center justify-center rounded-xl', bg)}>
           <Icon name={icon} size={18} color={tint} />
@@ -224,7 +229,7 @@ export function Row({
           </Text>
         ) : null}
       </View>
-      {right ?? (onPress ? <Icon name={icons.chevron} size={14} color={brandColors.edge} /> : null)}
+      {right ?? (onPress ? <Icon name={icons.chevron} size={14} color={colors.edge} /> : null)}
     </Pressable>
   );
 }

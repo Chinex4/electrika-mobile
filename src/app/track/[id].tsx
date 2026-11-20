@@ -2,12 +2,13 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { Avatar, Banner, brandColors, Button, Card, Failed, Heading, HeroCard, HeroStat, HeroStats, Icon, icons, Loading, Pill, Screen, Small } from '@/components/ui';
+import { Avatar, Banner, Button, Card, Failed, Heading, HeroCard, HeroStat, HeroStats, Icon, icons, Loading, Pill, Screen, Small } from '@/components/ui';
 import { useT } from '@/i18n';
 import { hereNow } from '@/tracking/journey';
 import { openMaps } from '@/lib/pay';
 import { useAction, useResource } from '@/store/hooks';
 import type { Job, TechnicianCard } from '@/types/api';
+import { useColors } from '@/theme';
 
 type Live = {
   state: 'waiting' | 'en_route' | 'arrived' | 'closed';
@@ -27,6 +28,7 @@ type Track = { job: Job; technician_card: TechnicianCard | null; live: Live; can
 
 /** Following the engineer on the way, refreshed every 15 seconds. */
 export default function TrackScreen() {
+  const colors = useColors();
   const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const q = useResource<Track>(`/track/${id}/`, { poll: 15_000 });
@@ -53,7 +55,7 @@ export default function TrackScreen() {
       <Stack.Screen options={{ title: t('track.title') }} />
       <HeroCard tone={live.state === 'arrived' ? 'navy' : 'brand'}>
         <View className="flex-row items-center gap-2">
-          <Icon name={live.state === 'arrived' ? icons.flag : icons.play} size={16} color={brandColors.white} />
+          <Icon name={live.state === 'arrived' ? icons.flag : icons.play} size={16} color={colors.white} />
           <Text className="text-[13px] font-semibold text-white/85">{live.site_name}</Text>
         </View>
         <Text className="text-[22px] font-bold leading-7 text-white">{live.headline || t('track.waiting')}</Text>

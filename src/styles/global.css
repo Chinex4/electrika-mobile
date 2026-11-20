@@ -1,3 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* The light theme by default; ThemeProvider sets the dark one (src/theme). */
+:root {
+  --c-page: 246 248 251;
+  --c-surface: 255 255 255;
+  --c-mist: 241 245 250;
+  --c-track: 232 237 244;
+  --c-line: 225 231 239;
+  --c-edge: 201 211 224;
+  --c-navy: 29 53 87;
+  --c-ink: 55 65 81;
+  --c-muted: 75 85 99;
+  --c-faint: 133 146 163;
+  --c-accent: 0 81 162;
+  --c-haze: 234 241 250;
+  --c-haze-edge: 199 217 240;
+  --c-alert-bg: 253 236 234;
+  --c-alert-ink: 180 35 24;
+  --c-alert-edge: 245 181 177;
+  --c-alert-tint: 255 248 247;
+  --c-amber-bg: 255 244 229;
+  --c-amber-ink: 138 59 0;
+  --c-amber-edge: 247 215 168;
+  --c-amber-tint: 255 251 245;
+  --c-leaf-bg: 231 245 236;
+  --c-leaf-ink: 31 107 61;
+  --c-leaf-edge: 191 227 205;
+  --c-leaf-tint: 246 251 248;
+}

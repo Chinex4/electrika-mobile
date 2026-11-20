@@ -16,6 +16,7 @@ export const selectIsCustomer = (s: RootState) => s.session.user?.role === 'CLIE
 export const selectHasPlan = (s: RootState) => !!s.session.user?.client?.has_plan;
 
 export const selectLang = (s: RootState) => s.settings.lang;
+export const selectThemePref = (s: RootState) => s.settings.theme;
 
 const EMPTY: Entry = { status: 'idle' };
 export const selectEntry = (path: string | null) => (s: RootState): Entry => (path ? (s.resources.entries[path] ?? EMPTY) : EMPTY);

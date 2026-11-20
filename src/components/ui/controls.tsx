@@ -4,24 +4,28 @@ import { ActivityIndicator, Platform, Pressable, ScrollView, Switch, Text, TextI
 
 import { useT } from '@/i18n';
 
-import { brandColors, Icon, icons, type IconName } from './Icon';
+import { Icon, icons, type IconName } from './Icon';
 import { RevealContext } from './keyboard';
 import { cx, raised } from './layout';
+import { useColors, type Colors } from '@/theme';
 
 const tap = () => {
   if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
 };
 
+// tint: the colour (from useColors) for the spinner and icon.
 const BUTTON = {
-  primary: { box: 'bg-brand', text: 'text-white', tint: brandColors.white },
-  danger: { box: 'bg-alert', text: 'text-white', tint: brandColors.white },
-  success: { box: 'bg-leaf', text: 'text-white', tint: brandColors.white },
-  secondary: { box: 'border-[1.5px] border-edge bg-white', text: 'text-brand', tint: brandColors.brand },
-  soft: { box: 'bg-haze', text: 'text-brand', tint: brandColors.brand },
-  ghost: { box: 'bg-transparent', text: 'text-brand', tint: brandColors.brand },
-  light: { box: 'bg-white/20', text: 'text-white', tint: brandColors.white },
-  white: { box: 'bg-white', text: 'text-brand', tint: brandColors.brand },
-} as const;
+  primary: { box: 'bg-brand', text: 'text-white', tint: 'white' },
+  danger: { box: 'bg-alert', text: 'text-white', tint: 'white' },
+  success: { box: 'bg-leaf', text: 'text-white', tint: 'white' },
+  secondary: { box: 'border-[1.5px] border-edge bg-surface', text: 'text-accent', tint: 'brand' },
+  soft: { box: 'bg-haze', text: 'text-accent', tint: 'brand' },
+  ghost: { box: 'bg-transparent', text: 'text-accent', tint: 'brand' },
+  light: { box: 'bg-white/20', text: 'text-white', tint: 'white' },
+  white: { box: 'bg-white', text: 'text-brand', tint: 'brandFill' },
+  /** On the page (not on blue): a card-coloured circle. */
+  surface: { box: 'border border-line bg-surface', text: 'text-accent', tint: 'brand' },
+} as const satisfies Record<string, { box: string; text: string; tint: keyof Colors }>;
 
 export type ButtonVariant = keyof typeof BUTTON;
 
@@ -44,6 +48,7 @@ export function Button({
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }) {
+  const colors = useColors();
   const v = BUTTON[variant];
   const height = { sm: 'min-h-[40px] px-4', md: 'min-h-[52px] px-5', lg: 'min-h-[58px] px-6' }[size];
   return (
@@ -63,10 +68,10 @@ export function Button({
         className,
       )}>
       {busy ? (
-        <ActivityIndicator color={v.tint} />
+        <ActivityIndicator color={colors[v.tint]} />
       ) : (
         <>
-          {icon ? <Icon name={icon} size={size === 'sm' ? 15 : 18} color={v.tint} /> : null}
+          {icon ? <Icon name={icon} size={size === 'sm' ? 15 : 18} color={colors[v.tint]} /> : null}
           <Text className={cx('font-semibold', size === 'sm' ? 'text-sm' : 'text-base', v.text)}>{title}</Text>
         </>
       )}
@@ -84,9 +89,10 @@ export function IconButton({
   icon: IconName;
   onPress: () => void;
   label: string;
-  variant?: 'soft' | 'white' | 'light' | 'primary';
+  variant?: 'soft' | 'white' | 'surface' | 'light' | 'primary';
   badge?: number;
 }) {
+  const colors = useColors();
   const v = BUTTON[variant];
   return (
     <Pressable
@@ -97,7 +103,7 @@ export function IconButton({
         onPress();
       }}
       className={cx('h-11 w-11 items-center justify-center rounded-full active:opacity-70', v.box)}>
-      <Icon name={icon} size={19} color={v.tint} />
+      <Icon name={icon} size={19} color={colors[v.tint]} />
       {badge ? (
         <View className="absolute -right-1 -top-1 min-w-[20px] items-center rounded-full bg-alert px-1.5 py-0.5">
           <Text className="text-[11px] font-bold text-white">{badge > 99 ? '99+' : badge}</Text>
@@ -113,6 +119,7 @@ export type FieldRef = ComponentRef<typeof TextInput>;
 
 export const Field = forwardRef<FieldRef, FieldProps>(function Field({ label, error, hint, icon, multiline, className, secureTextEntry, ...props }, ref) {
   const t = useT();
+  const colors = useColors();
   const [focused, setFocused] = useState(false);
   const input = useRef<FieldRef>(null);
   useImperativeHandle(ref, () => input.current as FieldRef);
@@ -125,14 +132,14 @@ export const Field = forwardRef<FieldRef, FieldProps>(function Field({ label, er
       <Text className="text-sm font-semibold text-navy">{label}</Text>
       <View
         className={cx(
-          'flex-row items-center gap-2 rounded-2xl border-[1.5px] bg-white px-4',
+          'flex-row items-center gap-2 rounded-2xl border-[1.5px] bg-surface px-4',
           multiline ? 'min-h-[104px] items-start py-3' : 'min-h-[52px]',
-          error ? 'border-alert' : focused ? 'border-brand' : 'border-edge',
+          error ? 'border-alert' : focused ? 'border-accent' : 'border-edge',
         )}>
-        {icon ? <Icon name={icon} size={17} color={brandColors.faint} /> : null}
+        {icon ? <Icon name={icon} size={17} color={colors.faint} /> : null}
         <TextInput
           ref={input}
-          placeholderTextColor={brandColors.faint}
+          placeholderTextColor={colors.faint}
           multiline={multiline}
           secureTextEntry={secureTextEntry && hidden}
           accessibilityLabel={label}
@@ -160,7 +167,7 @@ export const Field = forwardRef<FieldRef, FieldProps>(function Field({ label, er
             hitSlop={10}
             onPress={() => setHidden((h) => !h)}
             className="h-9 w-9 items-center justify-center rounded-full active:bg-mist">
-            <Icon name={hidden ? { sf: 'eye', md: 'visibility' } : { sf: 'eye.slash', md: 'visibility_off' }} size={19} color={brandColors.muted} />
+            <Icon name={hidden ? { sf: 'eye', md: 'visibility' } : { sf: 'eye.slash', md: 'visibility_off' }} size={19} color={colors.muted} />
           </Pressable>
         ) : null}
       </View>
@@ -190,7 +197,7 @@ export function Choices<K extends string>({
   scroll?: boolean;
 }) {
   const chosen = (k: K) => (Array.isArray(value) ? value.includes(k) : value === k);
-  const on = tone === 'alert' ? 'border-alert bg-alert-bg' : 'border-brand bg-brand';
+  const on = tone === 'alert' ? 'border-alert bg-alert-bg' : 'border-accent bg-brand';
   const onText = tone === 'alert' ? 'text-alert-ink' : 'text-white';
   const chips = options.map((o) => (
     <Pressable
@@ -201,7 +208,7 @@ export function Choices<K extends string>({
         tap();
         onChange(o.key);
       }}
-      className={cx('rounded-full border-[1.5px] px-4 py-2.5 active:opacity-80', chosen(o.key) ? on : 'border-line bg-white')}>
+      className={cx('rounded-full border-[1.5px] px-4 py-2.5 active:opacity-80', chosen(o.key) ? on : 'border-line bg-surface')}>
       <Text className={cx('text-sm font-semibold', chosen(o.key) ? onText : 'text-ink')}>{o.label}</Text>
     </Pressable>
   ));
@@ -234,6 +241,7 @@ export function OptionCards<K extends string>({
   label?: string;
   error?: string;
 }) {
+  const colors = useColors();
   return (
     <View className="gap-2">
       {label ? <Text className="text-sm font-semibold text-navy">{label}</Text> : null}
@@ -248,13 +256,13 @@ export function OptionCards<K extends string>({
               tap();
               onChange(o.key);
             }}
-            className={cx('flex-row items-center gap-3 rounded-2xl border-[1.5px] p-4 active:opacity-90', on ? 'border-brand bg-haze' : 'border-line bg-white')}>
-            {o.icon ? <Icon name={o.icon} size={20} color={on ? brandColors.brand : brandColors.muted} /> : null}
+            className={cx('flex-row items-center gap-3 rounded-2xl border-[1.5px] p-4 active:opacity-90', on ? 'border-accent bg-haze' : 'border-line bg-surface')}>
+            {o.icon ? <Icon name={o.icon} size={20} color={on ? colors.brand : colors.muted} /> : null}
             <View className="flex-1 gap-0.5">
-              <Text className={cx('text-[15px] font-semibold', on ? 'text-brand' : 'text-navy')}>{o.label}</Text>
+              <Text className={cx('text-[15px] font-semibold', on ? 'text-accent' : 'text-navy')}>{o.label}</Text>
               {o.hint ? <Text className="text-[13px] text-muted">{o.hint}</Text> : null}
             </View>
-            <View className={cx('h-5 w-5 items-center justify-center rounded-full border-2', on ? 'border-brand' : 'border-edge')}>
+            <View className={cx('h-5 w-5 items-center justify-center rounded-full border-2', on ? 'border-accent' : 'border-edge')}>
               {on ? <View className="h-2.5 w-2.5 rounded-full bg-brand" /> : null}
             </View>
           </Pressable>
@@ -267,7 +275,7 @@ export function OptionCards<K extends string>({
 
 export function Segmented<K extends string>({ value, onChange, options }: { value: K; onChange: (k: K) => void; options: { key: K; label: string; count?: number }[] }) {
   return (
-    <View className="flex-row rounded-2xl bg-[#E8EDF4] p-1">
+    <View className="flex-row rounded-2xl bg-track p-1">
       {options.map((o) => (
         <Pressable
           key={o.key}
@@ -278,11 +286,11 @@ export function Segmented<K extends string>({ value, onChange, options }: { valu
             onChange(o.key);
           }}
           style={value === o.key ? raised : undefined}
-          className={cx('flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-2.5', value === o.key && 'bg-white')}>
-          <Text className={cx('text-sm font-semibold', value === o.key ? 'text-brand' : 'text-muted')}>{o.label}</Text>
+          className={cx('flex-1 flex-row items-center justify-center gap-1.5 rounded-xl py-2.5', value === o.key && 'bg-surface')}>
+          <Text className={cx('text-sm font-semibold', value === o.key ? 'text-accent' : 'text-muted')}>{o.label}</Text>
           {o.count ? (
-            <View className={cx('rounded-full px-1.5', value === o.key ? 'bg-haze' : 'bg-white/70')}>
-              <Text className="text-[11px] font-bold text-brand">{o.count}</Text>
+            <View className={cx('rounded-full px-1.5', value === o.key ? 'bg-haze' : 'bg-surface/70')}>
+              <Text className="text-[11px] font-bold text-accent">{o.count}</Text>
             </View>
           ) : null}
         </Pressable>
@@ -292,6 +300,7 @@ export function Segmented<K extends string>({ value, onChange, options }: { valu
 }
 
 export function Toggle({ label, sub, value, onChange, disabled }: { label: string; sub?: string; value: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
+  const colors = useColors();
   return (
     <View className="flex-row items-center gap-3">
       <View className="flex-1 gap-0.5">
@@ -305,14 +314,15 @@ export function Toggle({ label, sub, value, onChange, disabled }: { label: strin
           tap();
           onChange(v);
         }}
-        trackColor={{ true: brandColors.leaf, false: brandColors.edge }}
-        thumbColor={Platform.OS === 'android' ? brandColors.white : undefined}
+        trackColor={{ true: colors.leaf, false: colors.edge }}
+        thumbColor={Platform.OS === 'android' ? colors.white : undefined}
       />
     </View>
   );
 }
 
 export function Check({ label, value, onChange }: { label: string; value: boolean; onChange: (v: boolean) => void }) {
+  const colors = useColors();
   return (
     <Pressable
       accessibilityRole="checkbox"
@@ -322,8 +332,8 @@ export function Check({ label, value, onChange }: { label: string; value: boolea
         onChange(!value);
       }}
       className="flex-row items-center gap-3 py-1.5">
-      <View className={cx('h-6 w-6 items-center justify-center rounded-lg border-2', value ? 'border-leaf bg-leaf' : 'border-edge bg-white')}>
-        {value ? <Icon name={{ sf: 'checkmark', md: 'check' }} size={14} color={brandColors.white} /> : null}
+      <View className={cx('h-6 w-6 items-center justify-center rounded-lg border-2', value ? 'border-leaf bg-leaf' : 'border-edge bg-surface')}>
+        {value ? <Icon name={{ sf: 'checkmark', md: 'check' }} size={14} color={colors.white} /> : null}
       </View>
       <Text className="flex-1 text-[15px] text-ink">{label}</Text>
     </Pressable>
@@ -331,6 +341,7 @@ export function Check({ label, value, onChange }: { label: string; value: boolea
 }
 
 export function Stepper({ value, onChange, min = 0, max = 99 }: { value: number; onChange: (n: number) => void; min?: number; max?: number }) {
+  const colors = useColors();
   const step = (d: number) => {
     const next = Math.max(min, Math.min(max, value + d));
     if (next !== value) {
@@ -339,13 +350,13 @@ export function Stepper({ value, onChange, min = 0, max = 99 }: { value: number;
     }
   };
   return (
-    <View className="flex-row items-center rounded-full border-[1.5px] border-line bg-white">
+    <View className="flex-row items-center rounded-full border-[1.5px] border-line bg-surface">
       <Pressable accessibilityLabel="Less" onPress={() => step(-1)} className="h-9 w-9 items-center justify-center active:opacity-60">
-        <Icon name={icons.minus} size={14} color={brandColors.brand} />
+        <Icon name={icons.minus} size={14} color={colors.brand} />
       </Pressable>
       <Text className="min-w-[24px] text-center text-[15px] font-bold text-navy">{value}</Text>
       <Pressable accessibilityLabel="More" onPress={() => step(1)} className="h-9 w-9 items-center justify-center active:opacity-60">
-        <Icon name={icons.plus} size={14} color={brandColors.brand} />
+        <Icon name={icons.plus} size={14} color={colors.brand} />
       </Pressable>
     </View>
   );
@@ -353,11 +364,12 @@ export function Stepper({ value, onChange, min = 0, max = 99 }: { value: number;
 
 /** A big tappable tile for a dashboard's quick actions. */
 export function ActionTile({ title, sub, icon, onPress, tone = 'brand' }: { title: string; sub?: string; icon: IconName; onPress: () => void; tone?: 'brand' | 'alert' | 'leaf' | 'amber' }) {
+  const colors = useColors();
   const t = {
-    brand: ['bg-haze', brandColors.brand],
-    alert: ['bg-alert-bg', brandColors.alert],
-    leaf: ['bg-leaf-bg', brandColors.leafInk],
-    amber: ['bg-amber-bg', brandColors.amberInk],
+    brand: ['bg-haze', colors.brand],
+    alert: ['bg-alert-bg', colors.alert],
+    leaf: ['bg-leaf-bg', colors.leafInk],
+    amber: ['bg-amber-bg', colors.amberInk],
   }[tone];
   return (
     <Pressable
@@ -366,7 +378,7 @@ export function ActionTile({ title, sub, icon, onPress, tone = 'brand' }: { titl
         tap();
         onPress();
       }}
-      className="min-w-[46%] flex-1 gap-2 rounded-2xl border border-line bg-white p-4 active:scale-[0.98] active:opacity-90">
+      className="min-w-[46%] flex-1 gap-2 rounded-2xl border border-line bg-surface p-4 active:scale-[0.98] active:opacity-90">
       <View className={cx('h-10 w-10 items-center justify-center rounded-xl', t[0])}>
         <Icon name={icon} size={20} color={t[1] as string} />
       </View>

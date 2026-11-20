@@ -10,9 +10,24 @@ import type { Lang } from '@/types/api';
 
 export const LANG_KEY = 'electrika.lang';
 const KEY = LANG_KEY;
+export const THEME_KEY = 'electrika.theme';
 
-export type SettingsState = { lang: Lang; loaded: boolean };
-const initialState: SettingsState = { lang: 'en', loaded: false };
+/** Light, dark, or whatever the phone is set to (the default). */
+export type ThemePref = 'system' | 'light' | 'dark';
+const THEMES: ThemePref[] = ['system', 'light', 'dark'];
+
+export type SettingsState = { lang: Lang; loaded: boolean; theme: ThemePref };
+const initialState: SettingsState = { lang: 'en', loaded: false, theme: 'system' };
+
+/** The theme saved on this phone. */
+export const loadTheme = createAsyncThunk('settings/loadTheme', async () => {
+  try {
+    const saved = (await SecureStore.getItemAsync(THEME_KEY)) as ThemePref | null;
+    return saved && THEMES.includes(saved) ? saved : null;
+  } catch {
+    return null;
+  }
+});
 
 export const loadLanguage = createAsyncThunk('settings/load', async () => {
   try {
@@ -43,11 +58,18 @@ const settings = createSlice({
     languageFromAccount(state, action: PayloadAction<Lang>) {
       state.lang = action.payload;
     },
+    /** Light, dark or system (saved on the phone by the store's listener). */
+    setTheme(state, action: PayloadAction<ThemePref>) {
+      state.theme = action.payload;
+    },
   },
   extraReducers: (b) => {
     b.addCase(loadLanguage.fulfilled, (state, action) => {
       if (action.payload) state.lang = action.payload;
       state.loaded = true;
+    });
+    b.addCase(loadTheme.fulfilled, (state, action) => {
+      if (action.payload) state.theme = action.payload;
     });
     b.addCase(changeLanguage.pending, (state, action) => {
       state.lang = action.meta.arg;
@@ -55,5 +77,5 @@ const settings = createSlice({
   },
 });
 
-export const { languageFromAccount } = settings.actions;
+export const { languageFromAccount, setTheme } = settings.actions;
 export default settings.reducer;

@@ -2,10 +2,11 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
-import { Between, brandColors, Card, Empty, Failed, Heading, Icon, icons, Loading, Pill, Screen, Segmented, Small, Title, type IconName } from '@/components/ui';
+import { Between, Card, Empty, Failed, Heading, Icon, icons, Loading, Pill, Screen, Segmented, Small, Title, type IconName } from '@/components/ui';
 import { useT } from '@/i18n';
 import { when, WEB_TONE } from '@/lib/format';
 import { useResource } from '@/store/hooks';
+import { useColors } from '@/theme';
 
 type Item = {
   kind: 'job' | 'order' | 'voice';
@@ -29,6 +30,7 @@ function open(i: Item) {
 
 /** Everything the customer has going on: jobs, Shop orders, power reports. */
 export function ActivityScreen() {
+  const colors = useColors();
   const t = useT();
   const [show, setShow] = useState<'now' | 'past'>('now');
   const q = useResource<{ results: Item[]; has_any: boolean }>(`/customer/activity/?show=${show}`);
@@ -49,7 +51,7 @@ export function ActivityScreen() {
         <Card key={`${i.kind}-${i.token ?? n}`} onPress={() => open(i)}>
           <View className="flex-row gap-3">
             <View className="h-10 w-10 items-center justify-center rounded-xl bg-haze">
-              <Icon name={KIND_ICON[i.kind]} size={18} color={brandColors.brand} />
+              <Icon name={KIND_ICON[i.kind]} size={18} color={colors.brand} />
             </View>
             <View className="flex-1 gap-1">
               <Between>

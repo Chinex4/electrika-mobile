@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { SelectField } from '@/components/SelectField';
-import { Banner, Between, brandColors, Button, Card, Failed, Field, Heading, Icon, icons, Loading, OptionCards, Pill, Screen, SectionLabel, Sheet, Small } from '@/components/ui';
+import { Banner, Between, Button, Card, Failed, Field, Heading, Icon, icons, Loading, OptionCards, Pill, Screen, SectionLabel, Sheet, Small } from '@/components/ui';
 import { useT } from '@/i18n';
 import { day, naira } from '@/lib/format';
 import { fieldErrors, useAction, useResource } from '@/store/hooks';
 import type { Choice, Person } from '@/types/api';
+import { useColors } from '@/theme';
 
 type Concern = { id: number; category_label: string; description: string; status: string; status_label: string; owner: Person | null; reply_due: string; latest_update: string; resolution: string; site: string };
 type Protections = {
@@ -22,6 +23,7 @@ type Concerns = { categories: Choice[]; reply_days: number; jobs: { id: number; 
 
 /** The promises on the plan, written plainly, and raising a concern. */
 export default function ProtectionsScreen() {
+  const colors = useColors();
   const t = useT();
   const q = useResource<Protections>('/protections/');
   const concerns = useResource<Concerns>('/protections/concerns/');
@@ -31,7 +33,7 @@ export default function ProtectionsScreen() {
   const promise = (title: string, text: string) => (
     <Card key={title}>
       <View className="flex-row items-start gap-3">
-        <Icon name={icons.shield} size={18} color={brandColors.brand} />
+        <Icon name={icons.shield} size={18} color={colors.brand} />
         <View className="flex-1 gap-1">
           <Heading className="text-[16px]">{title}</Heading>
           <Text className="text-sm leading-5 text-ink">{text}</Text>

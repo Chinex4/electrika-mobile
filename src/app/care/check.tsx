@@ -56,7 +56,7 @@ export default function SelfCheck() {
       {d.items.map((item, i) => (
         <Card key={item.key}>
           <View className="flex-row gap-2">
-            <Text className="text-[15px] font-bold text-brand">{i + 1}.</Text>
+            <Text className="text-[15px] font-bold text-accent">{i + 1}.</Text>
             <Text className="flex-1 text-[15px] font-semibold text-navy">{item.label}</Text>
           </View>
           {item.guide ? <Small>{item.guide}</Small> : null}

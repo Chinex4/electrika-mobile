@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { SelectField } from '@/components/SelectField';
-import { Between, brandColors, Button, Card, Empty, ErrorText, Failed, Field, Heading, Icon, IconButton, icons, Loading, Pill, Screen, Sheet, Small } from '@/components/ui';
+import { Between, Button, Card, Empty, ErrorText, Failed, Field, Heading, Icon, IconButton, icons, Loading, Pill, Screen, Sheet, Small } from '@/components/ui';
 import { useT } from '@/i18n';
 import { clearError, rules, useValidate } from '@/lib/validate';
 import { notify } from '@/lib/toast';
@@ -13,6 +13,7 @@ import { openMaps } from '@/lib/pay';
 import { useDraft } from '@/lib/useDraft';
 import { fieldErrors, useAction, useResource } from '@/store/hooks';
 import type { ApiFailure, Site } from '@/types/api';
+import { useColors } from '@/theme';
 
 /** The customer's places: add one, edit it, and pin it from where they stand so engineers find it first time. */
 export default function Places() {
@@ -45,6 +46,7 @@ export default function Places() {
 }
 
 function PlaceSheet({ place, onClose }: { place: Site | 'new' | null; onClose: () => void }) {
+  const colors = useColors();
   const t = useT();
   const check = useValidate();
   const config = useConfig();
@@ -105,7 +107,7 @@ function PlaceSheet({ place, onClose }: { place: Site | 'new' | null; onClose: (
       <Field label={t('form.landmark')} value={form.landmark} onChangeText={set('landmark')} placeholder={t('form.landmarkHint')} />
       <Card tone={pin ? 'leaf' : undefined}>
         <View className="flex-row items-center gap-2">
-          <Icon name={icons.pin} size={18} color={pin ? brandColors.leafInk : brandColors.muted} />
+          <Icon name={icons.pin} size={18} color={pin ? colors.leafInk : colors.muted} />
           <Heading className="flex-1 text-[15px]">{pin ? t('places.pinSet') : t('places.pinTitle')}</Heading>
         </View>
         <Small>{t('places.pinSub')}</Small>

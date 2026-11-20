@@ -4,13 +4,14 @@ import { Pressable, Text, View } from 'react-native';
 
 import { photoPart } from '@/api/client';
 import { SelectField } from '@/components/SelectField';
-import { Banner, brandColors, Button, Card, Check, Choices, ErrorText, Field, Icon, icons, Loading, PhotoStrip, Screen, SectionLabel, Small, Stepper } from '@/components/ui';
+import { Banner, Button, Card, Check, Choices, ErrorText, Field, Icon, icons, Loading, PhotoStrip, Screen, SectionLabel, Small, Stepper } from '@/components/ui';
 import { useT } from '@/i18n';
 import { notify } from '@/lib/toast';
 import { fieldErrors, useAction, useResource } from '@/store/hooks';
 import type { ApiFailure } from '@/types/api';
 
 import type { JobDetail } from './index';
+import { useColors } from '@/theme';
 
 type Finding = { text: string; status: string };
 
@@ -21,6 +22,7 @@ type Finding = { text: string; status: string };
  * sign-off before the client sees it.
  */
 export default function ReportScreen() {
+  const colors = useColors();
   const t = useT();
   const { id } = useLocalSearchParams<{ id: string }>();
   const q = useResource<JobDetail>(`/job/${id}/`);
@@ -112,7 +114,7 @@ export default function ReportScreen() {
         <Check label={t('report.firstTime')} value={firstTime} onChange={setFirstTime} />
       </Card>
       <View className="flex-row items-center gap-2 px-1">
-        <Icon name={icons.info} size={14} color={brandColors.faint} />
+        <Icon name={icons.info} size={14} color={colors.faint} />
         <Small className="flex-1">{t('report.reviewNote')}</Small>
       </View>
     </Screen>

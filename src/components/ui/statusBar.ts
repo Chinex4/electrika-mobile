@@ -11,10 +11,15 @@ import { useFocusEffect } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { useCallback } from 'react';
 
+import { useScheme } from '@/theme';
+
+/** 'dark' is "for the page": dark text in the light theme, light in the dark one. */
 export function useStatusBarStyle(style: 'light' | 'dark') {
+  const scheme = useScheme();
+  const shown = style === 'dark' && scheme === 'dark' ? 'light' : style;
   useFocusEffect(
     useCallback(() => {
-      setStatusBarStyle(style, true);
-    }, [style]),
+      setStatusBarStyle(shown, true);
+    }, [shown]),
   );
 }

@@ -209,4 +209,9 @@ export const screensIg: Record<string, string> = {
   'reset.newTitle': "Họrọ okwuntughe ọhụrụ",
   'reset.setPassword': "Debe okwuntughe",
   'v.fixFields': "Biko lelee ebe ndị e gosiri.",
+  'me.appearance': "Ọdịdị",
+  'me.appearanceSub': "“Dịka ekwentị” na-eso ihe ekwentị gị họọrọ.",
+  'theme.system': "Dịka ekwentị",
+  'theme.light': "Ìhè",
+  'theme.dark': "Ọchịchịrị",
 };

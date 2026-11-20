@@ -2,11 +2,12 @@ import { router, Stack } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 
-import { ActionTile, brandColors, type IconName, Card, Choices, Empty, Failed, Heading, Icon, icons, Loading, Screen, SectionLabel, Small } from '@/components/ui';
+import { ActionTile, type IconName, Card, Choices, Empty, Failed, Heading, Icon, icons, Loading, Screen, SectionLabel, Small } from '@/components/ui';
 import { useT } from '@/i18n';
 import { day, when } from '@/lib/format';
 import { useResource } from '@/store/hooks';
 import type { Site } from '@/types/api';
+import { useColors } from '@/theme';
 
 type Entry = { kind: 'check' | 'report' | 'visit'; when: string; title: string; concerns?: string[]; meter_reading?: string; notes?: string; photo_url?: string | null };
 type Care = { sites: Site[]; site: Site | null; logbook: Entry[]; last_check: string | null; guides_visible: boolean; safe_to_do: string[]; spot_and_report: string[]; never_do: string[] };
@@ -15,6 +16,7 @@ const KIND_ICON = { check: icons.checklist, report: icons.eyeTrouble, visit: ico
 
 /** Care between visits: the site's logbook, the monthly check and "I noticed something". */
 export default function CareHome() {
+  const colors = useColors();
   const t = useT();
   const [site, setSite] = useState('');
   const q = useResource<Care>(`/care/${site ? `?site=${site}` : ''}`);
@@ -39,7 +41,7 @@ export default function CareHome() {
             <Card key={i}>
               <View className="flex-row gap-3">
                 <View className="h-9 w-9 items-center justify-center rounded-xl bg-haze">
-                  <Icon name={KIND_ICON[e.kind] ?? icons.logbook} size={17} color={brandColors.brand} />
+                  <Icon name={KIND_ICON[e.kind] ?? icons.logbook} size={17} color={colors.brand} />
                 </View>
                 <View className="flex-1 gap-0.5">
                   <Heading className="text-[15px]">{e.title}</Heading>
@@ -59,13 +61,14 @@ export default function CareHome() {
 }
 
 function SafeLists({ safe, spot, never }: { safe: string[]; spot: string[]; never: string[] }) {
+  const colors = useColors();
   const t = useT();
   const block = (title: string, items: string[], tone: 'leaf' | 'amber' | 'alert', icon: IconName = icons.check) => (
     <Card tone={tone}>
       <Heading className="text-[16px]">{title}</Heading>
       {items.map((x) => (
         <View key={x} className="flex-row gap-2">
-          <Icon name={icon} size={15} color={tone === 'leaf' ? brandColors.leafInk : tone === 'amber' ? brandColors.amberInk : brandColors.alertInk} />
+          <Icon name={icon} size={15} color={tone === 'leaf' ? colors.leafInk : tone === 'amber' ? colors.amberInk : colors.alertInk} />
           <Text className="flex-1 text-sm leading-5 text-ink">{x}</Text>
         </View>
       ))}

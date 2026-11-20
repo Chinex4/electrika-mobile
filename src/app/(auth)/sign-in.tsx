@@ -51,7 +51,7 @@ export default function SignIn() {
         keyboardDismissMode="interactive"
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}>
         <AuthHeader sub={t('auth.tagline')} />
-        <View className="-mt-5 mx-4 gap-4 rounded-3xl border border-line bg-white p-5">
+        <View className="-mt-5 mx-4 gap-4 rounded-3xl border border-line bg-surface p-5">
           <Text className="text-xl font-bold text-navy">{t('auth.welcomeBack')}</Text>
           <Field
             label={t('auth.username')} placeholder={t('ph.auth.username')}
@@ -86,14 +86,14 @@ export default function SignIn() {
           />
           <Button title={t('common.signIn')} onPress={submit} busy={busy} size="lg" />
           <Pressable accessibilityRole="link" onPress={() => router.push('/forgot')} className="self-center py-1" hitSlop={8}>
-            <Text className="text-[15px] font-semibold text-brand">{t('auth.forgot')}</Text>
+            <Text className="text-[15px] font-semibold text-accent">{t('auth.forgot')}</Text>
           </Pressable>
         </View>
         <View className="mx-4 mt-4 gap-3">
           <View className="flex-row items-center justify-center gap-1.5">
             <Text className="text-[15px] text-muted">{t('auth.noAccount')}</Text>
             <Pressable accessibilityRole="link" onPress={() => router.push('/sign-up')} hitSlop={8}>
-              <Text className="text-[15px] font-semibold text-brand">{t('auth.createFree')}</Text>
+              <Text className="text-[15px] font-semibold text-accent">{t('auth.createFree')}</Text>
             </Pressable>
           </View>
           <Button title={t('auth.emergency')} variant="danger" icon={icons.bolt} onPress={() => router.push('/help/emergency')} />

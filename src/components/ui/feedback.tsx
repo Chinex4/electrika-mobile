@@ -10,11 +10,12 @@ import type { Tone } from '@/lib/format';
 import type { ApiFailure } from '@/types/api';
 
 import { Button } from './controls';
-import { brandColors, Icon, icons, type IconName } from './Icon';
+import { Icon, icons, type IconName } from './Icon';
 import { cx } from './layout';
+import { useColors } from '@/theme';
 
 const PILL: Record<Tone, string> = {
-  brand: 'bg-haze text-brand',
+  brand: 'bg-haze text-accent',
   alert: 'bg-alert-bg text-alert-ink',
   leaf: 'bg-leaf-bg text-leaf-ink',
   amber: 'bg-amber-bg text-amber-ink',
@@ -31,13 +32,13 @@ export function Pill({ label, tone = 'brand' }: { label: string; tone?: Tone }) 
 }
 
 export function Stat({ label, value, tone, onPress }: { label: string; value: string | number; tone?: 'alert' | 'leaf' | 'brand'; onPress?: () => void }) {
-  const color = { alert: 'text-alert', leaf: 'text-leaf-ink', brand: 'text-brand' }[tone ?? 'brand'];
+  const color = { alert: 'text-alert', leaf: 'text-leaf-ink', brand: 'text-accent' }[tone ?? 'brand'];
   return (
     <Pressable
       disabled={!onPress}
       onPress={onPress}
       accessibilityRole={onPress ? 'button' : undefined}
-      className="min-w-[30%] flex-1 gap-0.5 rounded-2xl border border-line bg-white p-3 active:opacity-80">
+      className="min-w-[30%] flex-1 gap-0.5 rounded-2xl border border-line bg-surface p-3 active:opacity-80">
       <Text className={cx('text-[22px] font-bold', tone ? color : 'text-navy')} numberOfLines={1} adjustsFontSizeToFit>
         {value}
       </Text>
@@ -58,7 +59,7 @@ function Bone({ className }: { className: string }) {
     o.value = withRepeat(withTiming(1, { duration: 750 }), -1, true);
   }, [o]);
   const style = useAnimatedStyle(() => ({ opacity: o.value }));
-  return <Animated.View style={style} className={cx('rounded-lg bg-[#E6ECF3]', className)} />;
+  return <Animated.View style={style} className={cx('rounded-lg bg-track', className)} />;
 }
 
 /** Placeholder cards while a screen's data loads. */
@@ -67,7 +68,7 @@ export function Loading({ rows = 3, hero }: { rows?: number; hero?: boolean }) {
     <View className="gap-3" accessibilityLabel="Loading" accessibilityRole="progressbar">
       {hero ? <Bone className="h-36 rounded-3xl" /> : null}
       {Array.from({ length: rows }, (_, i) => (
-        <View key={i} className="gap-2.5 rounded-2xl border border-line bg-white p-4">
+        <View key={i} className="gap-2.5 rounded-2xl border border-line bg-surface p-4">
           <Bone className="h-4 w-3/5" />
           <Bone className="h-3 w-4/5" />
           <Bone className="h-3 w-2/5" />
@@ -78,20 +79,22 @@ export function Loading({ rows = 3, hero }: { rows?: number; hero?: boolean }) {
 }
 
 export function Spinner() {
+  const colors = useColors();
   return (
     <View className="items-center p-8">
-      <ActivityIndicator color={brandColors.brand} />
+      <ActivityIndicator color={colors.brand} />
     </View>
   );
 }
 
 export function Failed({ error, onRetry }: { error: ApiFailure | string; onRetry: () => void }) {
+  const colors = useColors();
   const t = useT();
   const message = typeof error === 'string' ? error : error.message;
   return (
-    <View className="items-center gap-3 rounded-2xl border border-line bg-white p-6">
+    <View className="items-center gap-3 rounded-2xl border border-line bg-surface p-6">
       <View className="h-12 w-12 items-center justify-center rounded-full bg-amber-bg">
-        <Icon name={icons.warning} size={22} color={brandColors.amberInk} />
+        <Icon name={icons.warning} size={22} color={colors.amberInk} />
       </View>
       <Text className="text-center text-[15px] text-ink">{message}</Text>
       <Button title={t('common.tryAgain')} variant="secondary" size="sm" onPress={onRetry} />
@@ -101,7 +104,7 @@ export function Failed({ error, onRetry }: { error: ApiFailure | string; onRetry
 
 export function Empty({ title, sub, icon = icons.sparkles, action }: { title: string; sub?: string; icon?: IconName; action?: ReactNode }) {
   return (
-    <View className="items-center gap-2 rounded-2xl border border-dashed border-edge bg-white/60 px-6 py-8">
+    <View className="items-center gap-2 rounded-2xl border border-dashed border-edge bg-surface/60 px-6 py-8">
       <View className="mb-1 h-12 w-12 items-center justify-center rounded-full bg-haze">
         <Icon name={icon} size={22} />
       </View>
@@ -113,14 +116,16 @@ export function Empty({ title, sub, icon = icons.sparkles, action }: { title: st
 }
 
 const BANNER = {
-  info: ['border-[#C7D9F0] bg-haze', 'text-navy', icons.info, brandColors.brand],
-  alert: ['border-alert-edge bg-alert-bg', 'text-alert-ink', icons.warning, brandColors.alertInk],
-  amber: ['border-amber-edge bg-amber-bg', 'text-amber-ink', icons.clock, brandColors.amberInk],
-  leaf: ['border-[#BFE3CD] bg-leaf-bg', 'text-leaf-ink', icons.check, brandColors.leafInk],
+  info: ['border-haze-edge bg-haze', 'text-navy', icons.info, 'brand'],
+  alert: ['border-alert-edge bg-alert-bg', 'text-alert-ink', icons.warning, 'alertInk'],
+  amber: ['border-amber-edge bg-amber-bg', 'text-amber-ink', icons.clock, 'amberInk'],
+  leaf: ['border-leaf-edge bg-leaf-bg', 'text-leaf-ink', icons.check, 'leafInk'],
 } as const;
 
 export function Banner({ tone = 'info', title, children, icon }: { tone?: keyof typeof BANNER; title?: string; children?: ReactNode; icon?: IconName }) {
-  const [box, text, defaultIcon, tint] = BANNER[tone];
+  const colors = useColors();
+  const [box, text, defaultIcon, tintKey] = BANNER[tone];
+  const tint = colors[tintKey];
   return (
     <View className={cx('flex-row gap-3 rounded-2xl border p-3.5', box)}>
       <Icon name={icon ?? defaultIcon} size={18} color={tint} />
@@ -141,7 +146,7 @@ export function Avatar({ url, initials, size = 44, tone = 'brand' }: { url?: str
   if (url) return <Image source={remoteImage(url)} style={box} contentFit="cover" transition={150} />;
   return (
     <View style={box} className={cx('items-center justify-center', tone === 'white' ? 'bg-white/25' : 'bg-haze')}>
-      <Text style={{ fontSize: size * 0.38 }} className={cx('font-bold', tone === 'white' ? 'text-white' : 'text-brand')}>
+      <Text style={{ fontSize: size * 0.38 }} className={cx('font-bold', tone === 'white' ? 'text-white' : 'text-accent')}>
         {initials || '•'}
       </Text>
     </View>
@@ -150,6 +155,7 @@ export function Avatar({ url, initials, size = 44, tone = 'brand' }: { url?: str
 
 /** Steps of a process, e.g. an order's or a request's progress. */
 export function Progress({ steps, current }: { steps: string[]; current: number }) {
+  const colors = useColors();
   return (
     <View className="gap-0">
       {steps.map((label, i) => {
@@ -161,9 +167,9 @@ export function Progress({ steps, current }: { steps: string[]; current: number 
               <View
                 className={cx(
                   'h-6 w-6 items-center justify-center rounded-full border-2',
-                  done ? 'border-leaf bg-leaf' : now ? 'border-brand bg-white' : 'border-edge bg-white',
+                  done ? 'border-leaf bg-leaf' : now ? 'border-accent bg-surface' : 'border-edge bg-surface',
                 )}>
-                {done ? <Icon name={{ sf: 'checkmark', md: 'check' }} size={12} color={brandColors.white} /> : null}
+                {done ? <Icon name={{ sf: 'checkmark', md: 'check' }} size={12} color={colors.white} /> : null}
                 {now ? <View className="h-2.5 w-2.5 rounded-full bg-brand" /> : null}
               </View>
               {i < steps.length - 1 ? <View className={cx('w-0.5 flex-1', done ? 'bg-leaf' : 'bg-line')} style={{ minHeight: 18 }} /> : null}

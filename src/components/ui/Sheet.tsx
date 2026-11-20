@@ -15,8 +15,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useT } from '@/i18n';
 
 import { Button, type ButtonVariant } from './controls';
-import { brandColors, Icon, icons } from './Icon';
+import { Icon, icons } from './Icon';
 import { RevealContext, useKeyboardInset, useRevealingScroll, SCROLL_THROTTLE, type ViewRef } from './keyboard';
+import { useColors } from '@/theme';
 
 export function Sheet({
   open,
@@ -33,6 +34,7 @@ export function Sheet({
   children: ReactNode;
   footer?: ReactNode;
 }) {
+  const colors = useColors();
   const t = useT();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
@@ -55,7 +57,7 @@ export function Sheet({
               {sub ? <Text className="text-sm text-muted">{sub}</Text> : null}
             </View>
             <Pressable accessibilityLabel={t('common.close')} onPress={onClose} className="h-9 w-9 items-center justify-center rounded-full bg-mist active:opacity-70">
-              <Icon name={icons.close} size={14} color={brandColors.muted} />
+              <Icon name={icons.close} size={14} color={colors.muted} />
             </Pressable>
           </View>
           <RevealContext.Provider value={reveal}>

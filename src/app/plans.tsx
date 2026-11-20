@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import { SelectField } from '@/components/SelectField';
-import { Banner, Between, brandColors, Button, Card, Check, Choices, ErrorText, Failed, Field, Icon, icons, Loading, Pill, Screen, Sheet, Small, Title } from '@/components/ui';
+import { Banner, Between, Button, Card, Check, Choices, ErrorText, Failed, Field, Icon, icons, Loading, Pill, Screen, Sheet, Small, Title } from '@/components/ui';
 import { useT } from '@/i18n';
 import { clearError, rules, useValidate } from '@/lib/validate';
 import { notify } from '@/lib/toast';
@@ -12,6 +12,7 @@ import { naira } from '@/lib/format';
 import { fieldErrors, useAction, useAppSelector, useResource } from '@/store/hooks';
 import { selectUser } from '@/store/selectors';
 import type { ApiFailure, Choice } from '@/types/api';
+import { useColors } from '@/theme';
 
 type Plan = { tier: string; label: string; fits: string; sla_hours: number; visits_per_year: number; base_fee: string };
 type Plans = { results: Plan[]; credits_on: boolean; warranty_days: number | null };
@@ -19,6 +20,7 @@ type FormChoices = { plans: Choice[]; who: Choice[] };
 
 /** The Care plans, and booking the free site assessment that starts one. */
 export default function PlansScreen() {
+  const colors = useColors();
   const t = useT();
   const q = useResource<Plans>('/plans/', { auth: false });
   const [booking, setBooking] = useState<string | null>(null);
@@ -35,7 +37,7 @@ export default function PlansScreen() {
             {i === 1 ? <Pill label={t('plans.popular')} tone="brand" /> : null}
           </Between>
           <Small>{p.fits}</Small>
-          <Text className="text-[26px] font-extrabold text-brand">
+          <Text className="text-[26px] font-extrabold text-accent">
             {naira(p.base_fee)}
             <Text className="text-sm font-medium text-muted"> {t('plans.perYear')}</Text>
           </Text>
@@ -43,7 +45,7 @@ export default function PlansScreen() {
             .filter(Boolean)
             .map((line) => (
               <View key={line} className="flex-row items-center gap-2">
-                <Icon name={icons.check} size={16} color={brandColors.leaf} />
+                <Icon name={icons.check} size={16} color={colors.leaf} />
                 <Text className="flex-1 text-[15px] text-ink">{line}</Text>
               </View>
             ))}

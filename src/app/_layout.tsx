@@ -13,7 +13,6 @@ import { Toaster } from 'sonner-native';
 
 import { HOME_FOR } from '@/auth/roles';
 import { AnimatedSplash } from '@/components/AnimatedSplash';
-import { brandColors } from '@/components/ui';
 import { routeForNotification } from '@/notifications/route';
 import { bootStore, store } from '@/store';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -21,6 +20,7 @@ import { selectSession } from '@/store/selectors';
 import { resumeJourney } from '@/store/slices/journey';
 import { changeLanguage } from '@/store/slices/settings';
 import { restoreSession, setPhoto, signIn } from '@/store/slices/session';
+import { ThemeRoot, useColors, useScheme } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();
 bootStore();
@@ -64,6 +64,7 @@ function Root() {
 }
 
 function AppStack() {
+  const colors = useColors();
   return (
     <>
       <StatusBar style="dark" />
@@ -71,12 +72,14 @@ function AppStack() {
       <Stack
         screenOptions={{
           headerShown: true,
+          // Screens set their own title; never show a route name like "track/[id]".
+          title: '',
           headerBackButtonDisplayMode: 'minimal',
-          headerTintColor: brandColors.brand,
-          headerTitleStyle: { color: brandColors.navy, fontWeight: '600' },
+          headerTintColor: colors.brand,
+          headerTitleStyle: { color: colors.navy, fontWeight: '600' },
           headerShadowVisible: false,
-          headerStyle: { backgroundColor: brandColors.page },
-          contentStyle: { backgroundColor: brandColors.page },
+          headerStyle: { backgroundColor: colors.page },
+          contentStyle: { backgroundColor: colors.page },
         }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
@@ -90,12 +93,20 @@ function AppStack() {
   );
 }
 
+/** Toasts in the theme showing (sonner draws its own light or dark cards). */
+function ThemedToaster() {
+  const scheme = useScheme();
+  return <Toaster position="top-center" duration={3500} richColors theme={scheme} swipeToDismissDirection="up" />;
+}
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
-        <Root />
-        <Toaster position="top-center" duration={3500} richColors swipeToDismissDirection="up" />
+        <ThemeRoot>
+          <Root />
+          <ThemedToaster />
+        </ThemeRoot>
       </Provider>
     </GestureHandlerRootView>
   );
