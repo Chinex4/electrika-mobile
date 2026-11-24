@@ -43,7 +43,7 @@ export default function Products() {
         <Card key={p.id} onPress={() => router.push(`/office/product/${p.id}`)}>
           <View className="flex-row gap-3">
             <View className="h-14 w-14 overflow-hidden rounded-xl bg-mist">
-              {p.image_url ? <Image source={p.image_url} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : null}
+              {p.image_url ? <Image source={p.image_url} style={{ width: '100%', height: '100%', backgroundColor: '#FFFFFF' }} contentFit="contain" /> : null}
             </View>
             <View className="flex-1 gap-0.5">
               <Text className="text-[15px] font-semibold text-navy" numberOfLines={2}>{p.name}</Text>

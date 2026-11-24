@@ -71,7 +71,7 @@ export default function ProductEdit() {
       <Stack.Screen options={{ title: isNew ? t('products.add') : t('products.edit') }} />
       <View className="flex-row items-center gap-3">
         <View className="h-20 w-20 overflow-hidden rounded-2xl bg-mist">
-          {photo || p?.image_url ? <Image source={photo ?? p?.image_url} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : null}
+          {photo || p?.image_url ? <Image source={photo ?? p?.image_url} style={{ width: '100%', height: '100%', backgroundColor: '#FFFFFF' }} contentFit="contain" /> : null}
         </View>
         <Button title={t('products.photo')} variant="soft" size="sm" icon={icons.camera} onPress={async () => setPhoto((await pickPhoto('library', true)) ?? photo)} />
       </View>

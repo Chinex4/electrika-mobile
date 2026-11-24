@@ -53,7 +53,7 @@ export default function ProductScreen() {
       {p ? (
         <>
           <View className="aspect-[4/3] w-full overflow-hidden rounded-3xl bg-mist">
-            {p.image_url ? <Image source={p.image_url} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={200} /> : null}
+            {p.image_url ? <Image source={p.image_url} style={{ width: '100%', height: '100%', backgroundColor: '#FFFFFF' }} contentFit="contain" transition={200} /> : null}
           </View>
           <View className="gap-1.5">
             {p.badge_label ? <Pill label={p.badge_label} /> : null}

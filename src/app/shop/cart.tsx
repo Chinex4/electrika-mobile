@@ -48,7 +48,7 @@ export default function Cart() {
         <Card key={i.product_id}>
           <View className="flex-row gap-3">
             <View className="h-16 w-16 overflow-hidden rounded-xl bg-mist">
-              {i.image_url ? <Image source={i.image_url} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : null}
+              {i.image_url ? <Image source={i.image_url} style={{ width: '100%', height: '100%', backgroundColor: '#FFFFFF' }} contentFit="contain" /> : null}
             </View>
             <View className="flex-1 gap-1">
               <Text className="text-[15px] font-semibold text-navy" numberOfLines={2}>

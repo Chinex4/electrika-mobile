@@ -74,7 +74,7 @@ function ProductTile({ p }: { p: Product }) {
       onPress={() => router.push(`/shop/${p.slug}`)}
       className="w-[48.5%] overflow-hidden rounded-2xl border border-line bg-surface active:opacity-90">
       <View className="aspect-square w-full bg-mist">
-        {p.image_url ? <Image source={p.image_url} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={150} /> : null}
+        {p.image_url ? <Image source={p.image_url} style={{ width: '100%', height: '100%', backgroundColor: '#FFFFFF' }} contentFit="contain" transition={150} /> : null}
         {p.badge_label ? (
           <View className="absolute left-2 top-2">
             <Pill label={p.badge_label} tone="brand" />
