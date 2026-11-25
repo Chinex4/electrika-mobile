@@ -25,6 +25,15 @@ const RULES: [RegExp, (m: RegExpMatchArray, role: Role) => string | null][] = [
   [/^\/shop\/order\/([\w:-]+)\/?/, (m) => `/shop/order/${m[1]}`],
   [/^\/r\/[\w:-]+\/?/, () => '/visits'],
   [/^\/safe\/?/, () => '/care/safety'],
+  // ElectriKa marketplace (25 Nov 2026)
+  [/^\/market\/messages\/(\d+)\/?/, (m) => `/market/messages/${m[1]}`],
+  [/^\/market\/messages\/?/, () => '/market/messages'],
+  [/^\/market\/vendor\/listings\/(\d+)\/?/, (m) => `/market/vendor/listing/${m[1]}`],
+  [/^\/market\/vendor\/(plan|promotions|adverts|listings|store|team)\/?/, (m) => `/market/vendor/${m[1]}`],
+  [/^\/market\/vendor\/?/, () => '/market/vendor'],
+  [/^\/market\/item\/([\w-]+)\/?/, (m) => `/market/item/${m[1]}`],
+  [/^\/store\/([\w-]+)\/?/, (m) => `/store/${m[1]}`],
+  [/^\/market\/?/, () => '/market'],
 ];
 
 export function routeForNotification(path: string | null | undefined, role: Role): Href | null {

@@ -1,9 +1,9 @@
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
-import { Choices, cx, Empty, Failed, Field, Icon, IconButton, icons, Loading, Pill, Screen, Title } from '@/components/ui';
+import { Choices, cx, Empty, Failed, Field, Icon, IconButton, icons, Loading, Pill, Screen, Segmented, Title } from '@/components/ui';
 import { useT } from '@/i18n';
 import { naira } from '@/lib/format';
 import { notify } from '@/lib/toast';
@@ -50,6 +50,12 @@ export function ShopScreen() {
         right={<IconButton icon={icons.cart} label={t('shop.cart')} variant="surface" badge={count} onPress={() => router.push('/shop/cart')} />}>
         {t('tab.shop')}
       </Title>
+      {/* ElectriKa (25 Nov 2026): ElectriKa's own store, beside the vendor marketplace. */}
+      <Segmented
+        options={[{ key: 'official', label: t('mk.official') }, { key: 'market', label: t('mk.marketplace') }]}
+        value="official"
+        onChange={(k) => k === 'market' && router.push('/market' as Href)}
+      />
       <Field label={t('common.search')} icon={icons.search} value={search} onChangeText={setSearch} placeholder={t('shop.searchHint')} returnKeyType="search" />
       <Choices scroll options={[{ key: '', label: t('common.all') }, ...(q.data?.categories ?? []).map((c) => ({ key: c.slug, label: c.name }))]} value={category} onChange={setCategory} />
       {q.isLoading ? <Loading rows={4} /> : null}
@@ -85,6 +91,7 @@ function ProductTile({ p }: { p: Product }) {
         <Text className="text-sm font-semibold text-navy" numberOfLines={2}>
           {p.name}
         </Text>
+        <Text className="text-[11px] text-muted">{t('mk.soldByElectrika')}</Text>
         <View className="flex-row items-center justify-between gap-1">
           <Text className={cx('flex-1 text-sm font-bold', p.quote_only || p.ask_price ? 'text-muted' : 'text-accent')} numberOfLines={1}>
             {priceLabel(p, t)}

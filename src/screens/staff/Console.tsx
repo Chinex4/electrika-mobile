@@ -82,6 +82,22 @@ const SECTION_ICON: Record<string, IconName> = {
   invoices: icons.money,
   orders: icons.box,
   products: icons.tag,
+  // ElectriKa Marketplace (26 Nov 2026)
+  'market-stores': icons.building,
+  'market-listings': icons.tag,
+  'market-reports': icons.eyeTrouble,
+  'market-chat-reports': icons.warning,
+  'market-promotions': icons.sparkles,
+  'market-adverts': icons.megaphone,
+  'market-advertisers': icons.handshake,
+  'market-plan-subs': icons.seal,
+  'market-payments': icons.money,
+  'market-plans': icons.card,
+  'market-promo-packages': icons.sparkles,
+  'market-ad-packages': icons.megaphone,
+  'market-placements': icons.list,
+  'market-categories': icons.list,
+  'market-settings': icons.key,
 };
 
 export function ConsoleScreen() {

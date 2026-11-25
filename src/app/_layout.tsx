@@ -4,6 +4,7 @@ import '@/tracking/journey';
 import * as Notifications from 'expo-notifications';
 import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { MarketLive } from '@/market/MarketLive';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
@@ -69,6 +70,7 @@ function AppStack() {
     <>
       <StatusBar style="dark" />
       {Platform.OS !== 'web' ? <NotificationTaps /> : null}
+      <MarketLive />
       <Stack
         screenOptions={{
           headerShown: true,

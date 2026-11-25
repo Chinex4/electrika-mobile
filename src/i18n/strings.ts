@@ -4,7 +4,9 @@
  * repo) so the two read alike. Messages that come from the server arrive
  * already in the person's language (the app sends Accept-Language).
  */
+import { marketEn } from './market.en';
 import { screensEn } from './screens.en';
+import { marketIg } from './market.ig';
 import { screensIg } from './screens.ig';
 
 const base = {
@@ -116,7 +118,7 @@ const base = {
   'me.version': 'Version {v}',
 } as const;
 
-export const en = { ...base, ...screensEn } as const;
+export const en = { ...base, ...screensEn, ...marketEn } as const;
 
 export type StringKey = keyof typeof en;
 
@@ -194,4 +196,4 @@ const baseIg: Partial<Record<StringKey, string>> = {
   'me.call': 'Kpọọ anyị ma ọ bụ WhatsApp anyị',
 };
 
-export const ig: Partial<Record<StringKey, string>> = { ...screensIg, ...baseIg };
+export const ig: Partial<Record<StringKey, string>> = { ...screensIg, ...marketIg, ...baseIg };

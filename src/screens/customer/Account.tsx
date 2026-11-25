@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import { File, Paths } from 'expo-file-system';
 import { useState } from 'react';
@@ -8,14 +8,16 @@ import { ConfirmSheet, icons, ListGroup, Row, SectionLabel } from '@/components/
 import { useT } from '@/i18n';
 import { notify } from '@/lib/toast';
 import { MeScreen } from '@/screens/MeScreen';
-import { useAction, useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAction, useAppDispatch, useAppSelector, useResource } from '@/store/hooks';
 import { selectHasPlan } from '@/store/selectors';
 import { signOut } from '@/store/slices/session';
 import type { ApiFailure } from '@/types/api';
+import type { MyStore } from '@/types/market';
 
 /** The customer's account: their Me page plus plan, places, money and their data. */
 export function AccountScreen() {
   const t = useT();
+  const store = useResource<{ store: MyStore | null }>('/market/vendor/');
   const hasPlan = useAppSelector(selectHasPlan);
   const dispatch = useAppDispatch();
   const { run, busy } = useAction();
@@ -66,6 +68,14 @@ export function AccountScreen() {
           <Row icon={icons.handshake} title={t('account.partner')} onPress={() => router.push({ pathname: '/enquire', params: { kind: 'partner' } })} last />
         </ListGroup>
       ) : null}
+      {/* ElectriKa (25 Nov 2026) */}
+      <SectionLabel>{t('mk.title')}</SectionLabel>
+      <ListGroup>
+        <Row icon={icons.bag} title={t('mk.marketplace')} sub={t('mk.sub')} onPress={() => router.push('/market' as Href)} />
+        <Row icon={{ sf: 'bubble.left.and.bubble.right.fill', md: 'forum' }} title={t('mk.messages')} onPress={() => router.push('/market/messages' as Href)} />
+        <Row icon={icons.building} tone="leaf" title={store.data?.store ? t('mk.myStore') : t('mk.becomeVendor')} sub={store.data?.store?.name ?? t('mk.sellSub')}
+          onPress={() => router.push((store.data?.store ? '/market/vendor' : '/market/sell') as Href)} last />
+      </ListGroup>
       <SectionLabel>{t('account.privacy')}</SectionLabel>
       <ListGroup>
         <Row icon={icons.download} title={t('account.myData')} sub={t('account.myDataSub')} onPress={download} />

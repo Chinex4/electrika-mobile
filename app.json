@@ -10,7 +10,10 @@
     "ios": {
       "bundleIdentifier": "ng.electrika.app",
       "supportsTablet": false,
-      "icon": "./assets/images/icon.png"
+      "icon": "./assets/images/icon.png",
+      "associatedDomains": [
+        "applinks:electrika.ng"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +22,34 @@
         "backgroundColor": "#0051A2"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "ng.electrika.app"
+      "package": "ng.electrika.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "electrika.ng",
+              "pathPrefix": "/store/"
+            },
+            {
+              "scheme": "https",
+              "host": "electrika.ng",
+              "pathPrefix": "/market/item/"
+            },
+            {
+              "scheme": "https",
+              "host": "electrika.ng",
+              "pathPrefix": "/market/messages/"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "output": "single",
